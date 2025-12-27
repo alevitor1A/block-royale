@@ -2,56 +2,56 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Block Survival Royale - Online</title>
+    <title>Block Royale - Rank Edition</title>
     <style>
-        body { background: #121212; margin: 0; overflow: hidden; font-family: 'Segoe UI', sans-serif; color: white; user-select: none; }
+        body { background: #121212; margin: 0; overflow: hidden; font-family: 'Segoe UI', Tahoma, sans-serif; color: white; user-select: none; }
         canvas { display: block; background: #1e1e24; cursor: crosshair; }
 
         /* HUD */
         #ui-layer { position: absolute; top: 20px; left: 20px; pointer-events: none; display: flex; flex-direction: column; gap: 10px; }
-        .stat-box { background: rgba(0, 0, 0, 0.7); padding: 10px 15px; border-left: 4px solid #00d2ff; border-radius: 4px; font-weight: bold; font-size: 14px; text-transform: uppercase; }
+        .stat-box { background: rgba(0, 0, 0, 0.7); padding: 10px 15px; border-left: 4px solid #00d2ff; border-radius: 4px; font-weight: bold; font-size: 14px; text-transform: uppercase; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
         .stat-box span { color: #00d2ff; }
-        .rank-box { border-left-color: #888; }
+        .stat-box.danger { border-color: #ff4444; }
+        .stat-box.danger span { color: #ff4444; }
 
-        /* Telas */
-        #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; }
-        h1 { font-size: 50px; text-shadow: 0 0 20px #00d2ff; margin-bottom: 10px; }
+        /* Telas de Overlay */
+        #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; text-align: center; }
+        h1 { font-size: 60px; margin: 0 0 20px 0; text-transform: uppercase; letter-spacing: 5px; color: #fff; text-shadow: 0 0 20px #00d2ff; }
         
-        /* Formulário de Login */
-        #login-form { display: flex; flex-direction: column; gap: 15px; align-items: center; }
-        input { padding: 12px; font-size: 18px; border-radius: 5px; border: none; width: 250px; text-align: center; }
-        button { padding: 15px 40px; font-size: 20px; background: #00d2ff; border: none; color: #000; font-weight: bold; cursor: pointer; border-radius: 5px; transition: 0.2s; }
-        button:hover { transform: scale(1.05); background: #fff; box-shadow: 0 0 20px #00d2ff; }
-        
-        #status-msg { margin-top: 10px; color: #00d2ff; font-size: 14px; }
-        #reload-msg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #ff4444; font-weight: bold; display: none; }
+        #login-box { display: flex; flex-direction: column; gap: 15px; align-items: center; background: rgba(255,255,255,0.05); padding: 30px; border-radius: 10px; border: 1px solid #333; }
+        input { padding: 15px; font-size: 18px; border-radius: 5px; border: 2px solid #00d2ff; background: #000; color: #fff; width: 280px; text-align: center; outline: none; }
+        button { padding: 15px 40px; font-size: 22px; background: #00d2ff; border: none; color: #000; font-weight: bold; cursor: pointer; transition: 0.2s; border-radius: 5px; }
+        button:hover { transform: scale(1.1); background: #fff; box-shadow: 0 0 20px #00d2ff; }
+
+        #ranking-global { margin-top: 25px; font-size: 16px; color: #aaa; line-height: 1.6; }
+        #reload-msg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 20px; color: #ff4444; font-weight: bold; display: none; text-shadow: 2px 2px 0 #000; }
     </style>
 </head>
 <body>
 
     <div id="ui-layer">
-        <div class="stat-box">JOGADOR: <span id="player-name-display">---</span></div>
-        <div class="stat-box rank-box">PATENTE: <span id="rank-display">RECRUTA</span></div>
+        <div class="stat-box">JOGADOR: <span id="ui-player-name">---</span></div>
+        <div class="stat-box" id="rank-box">PATENTE: <span id="rank-display">CARREGANDO...</span></div>
         <div class="stat-box">KILLS TOTAIS: <span id="kills-display">0</span></div>
-        <div class="stat-box">VIDA: <span id="hp">100</span>%</div>
-        <div class="stat-box">MUNIÇÃO: <span id="ammo">20</span>/20</div>
+        <div class="stat-box danger">VIDA: <span id="hp">100</span>%</div>
+        <div class="stat-box">MUNIÇÃO: <span id="ammo">20</span> / 20</div>
     </div>
 
-    <div id="reload-msg">RECARREGANDO (R)...</div>
+    <div id="reload-msg">APERTE 'R' PARA RECARREGAR!</div>
 
     <div id="overlay">
-        <h1>BLOCK ROYALE</h1>
-        <div id="login-form">
-            <input type="text" id="username" placeholder="Digite seu apelido..." maxlength="12">
-            <button id="startBtn">ENTRAR NO JOGO</button>
-            <p id="status-msg">Conectando ao banco de dados...</p>
+        <h1 id="main-title">BLOCK ROYALE</h1>
+        
+        <div id="login-box">
+            <input type="text" id="username-input" placeholder="SEU APELIDO..." maxlength="12">
+            <button id="startBtn">ENTRAR E JOGAR</button>
+            <div id="ranking-global">Buscando lendas do servidor...</div>
         </div>
     </div>
 
     <canvas id="gameCanvas"></canvas>
 
     <script type="module">
-        // --- CONFIGURAÇÃO FIREBASE ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
@@ -66,143 +66,201 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        const statusMsg = document.getElementById('status-msg');
-        statusMsg.innerText = "Servidor Online ✓";
 
-        // --- LÓGICA DO JOGO ---
+        // --- LÓGICA DO JOGO (VERSÃO ORIGINAL REPARADA) ---
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         let gameRunning = false;
         let currentPlayer = { name: "", totalKills: 0 };
         let matchKills = 0;
+        let frames = 0;
 
-        // Patentes
-        const getRank = (k) => {
-            if (k >= 1000000) return { n: "LOB", c: "#ff00ea" };
-            if (k >= 35600) return { n: "GAST", c: "#cd7f32" };
-            if (k >= 1000) return { n: "GOT", c: "#ffffff" };
-            return { n: "RECRUTA", c: "#888" };
+        const player = { x: 0, y: 0, size: 30, color: '#00d2ff', speed: 4, hp: 100, ammo: 20, maxAmmo: 20, reloading: false };
+        let enemies = [], projectiles = [], particles = [], keys = {}, mouse = { x: 0, y: 0 };
+
+        const enemyTypes = {
+            basic: { color: '#ff4444', speed: 2, hp: 1, size: 30, score: 10, face: 'angry' },
+            tank:  { color: '#8800ff', speed: 1, hp: 5, size: 50, score: 50, face: 'mean' },
+            fast:  { color: '#ffee00', speed: 5, hp: 1, size: 20, score: 30, face: 'crazy' }
         };
 
+        function getRank(kills) {
+            if (kills >= 1000000) return { nome: "LOB", cor: "#ff00ea" };
+            if (kills >= 35600) return { nome: "GAST", cor: "#cd7f32" };
+            if (kills >= 1000) return { nome: "GOT", cor: "#ffffff" };
+            return { nome: "RECRUTA", cor: "#888" };
+        }
+
+        async function updateRankingUI() {
+            const rankingDiv = document.getElementById('ranking-global');
+            try {
+                const snapshot = await get(child(ref(db), 'players'));
+                if (snapshot.exists()) {
+                    const players = snapshot.val();
+                    const top5 = Object.entries(players)
+                        .map(([name, data]) => ({ name, kills: data.totalKills || 0 }))
+                        .sort((a, b) => b.kills - a.kills)
+                        .slice(0, 5);
+                    
+                    rankingDiv.innerHTML = "<b>🏆 RANKING GLOBAL:</b><br>" + 
+                        top5.map((p, i) => `${i+1}º ${p.name} - ${p.kills}`).join("<br>");
+                }
+            } catch (e) { rankingDiv.innerText = "Ranking indisponível."; }
+        }
+
         async function login() {
-            const name = document.getElementById('username').value.trim();
-            if (!name) return alert("Digite um nome!");
+            const name = document.getElementById('username-input').value.trim().toUpperCase();
+            if (name.length < 3) return alert("Nome muito curto!");
             
-            statusMsg.innerText = "Carregando perfil...";
+            document.getElementById('startBtn').innerText = "CARREGANDO...";
             const snapshot = await get(child(ref(db), `players/${name}`));
             
-            if (snapshot.exists()) {
-                currentPlayer = { name: name, totalKills: snapshot.val().totalKills || 0 };
-            } else {
-                currentPlayer = { name: name, totalKills: 0 };
-            }
-
-            document.getElementById('player-name-display').innerText = currentPlayer.name;
-            updateUI();
+            currentPlayer.name = name;
+            currentPlayer.totalKills = snapshot.exists() ? (snapshot.val().totalKills || 0) : 0;
+            
+            document.getElementById('ui-player-name').innerText = name;
             startGame();
         }
 
-        async function saveScore() {
-            const newTotal = currentPlayer.totalKills + matchKills;
-            await set(ref(db, 'players/' + currentPlayer.name), {
-                totalKills: newTotal,
-                lastSeen: new Date().toISOString()
-            });
-            currentPlayer.totalKills = newTotal;
-            updateUI();
+        function startGame() {
+            gameRunning = true;
+            document.getElementById('overlay').style.display = 'none';
+            matchKills = 0;
+            player.hp = 100;
+            player.ammo = 20;
+            player.x = canvas.width / 2;
+            player.y = canvas.height / 2;
+            enemies = []; projectiles = []; particles = [];
+            updateHUD();
+            loop();
         }
 
-        // Sistema de Jogo Simples
-        const player = { x: 0, y: 0, size: 30, hp: 100, ammo: 20 };
-        let enemies = [], projectiles = [], keys = {}, mouse = {x:0, y:0};
+        async function gameOver() {
+            gameRunning = false;
+            const newTotal = currentPlayer.totalKills + matchKills;
+            await set(ref(db, 'players/' + currentPlayer.name), { totalKills: newTotal });
+            currentPlayer.totalKills = newTotal;
+            
+            document.getElementById('overlay').style.display = 'flex';
+            document.getElementById('main-title').innerText = "FIM DE JOGO";
+            document.getElementById('startBtn').innerText = "TENTAR DE NOVO";
+            updateRankingUI();
+        }
 
-        function updateUI() {
-            const rank = getRank(currentPlayer.totalKills);
-            document.getElementById('rank-display').innerText = rank.n;
-            document.getElementById('rank-display').style.color = rank.c;
-            document.getElementById('kills-display').innerText = currentPlayer.totalKills;
+        function updateHUD() {
+            const rank = getRank(currentPlayer.totalKills + matchKills);
+            document.getElementById('rank-display').innerText = rank.nome;
+            document.getElementById('rank-display').style.color = rank.cor;
+            document.getElementById('kills-display').innerText = currentPlayer.totalKills + matchKills;
             document.getElementById('hp').innerText = player.hp;
             document.getElementById('ammo').innerText = player.ammo;
         }
 
-        function startGame() {
-            document.getElementById('overlay').style.display = 'none';
-            gameRunning = true;
-            matchKills = 0;
-            player.hp = 100;
-            player.x = window.innerWidth/2; player.y = window.innerHeight/2;
-            enemies = []; projectiles = [];
-            requestAnimationFrame(gameLoop);
-        }
-
-        function gameOver() {
-            gameRunning = false;
-            saveScore();
-            document.getElementById('overlay').style.display = 'flex';
-            document.getElementById('status-msg').innerText = "Kills salvas! Clique para jogar de novo.";
-            document.getElementById('startBtn').innerText = "JOGAR NOVAMENTE";
-        }
-
-        // Controles e Loop
-        window.addEventListener('keydown', e => keys[e.key.toLowerCase()] = true);
-        window.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
-        window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
-        window.addEventListener('mousedown', () => { if(gameRunning && player.ammo > 0) shoot(); });
-        document.getElementById('startBtn').addEventListener('click', login);
-
+        // --- SISTEMA DE COMBATE ORIGINAL ---
         function shoot() {
+            if (player.reloading || player.ammo <= 0) return;
             const angle = Math.atan2(mouse.y - player.y, mouse.x - player.x);
-            projectiles.push({x: player.x, y: player.y, vx: Math.cos(angle)*10, vy: Math.sin(angle)*10});
+            projectiles.push({
+                x: player.x, y: player.y,
+                vx: Math.cos(angle) * 12, vy: Math.sin(angle) * 12
+            });
             player.ammo--;
-            updateUI();
+            updateHUD();
         }
 
-        function gameLoop() {
-            if(!gameRunning) return;
-            ctx.clearRect(0,0,canvas.width, canvas.height);
-            
-            // Mover jogador
-            if(keys['w']) player.y -= 4; if(keys['s']) player.y += 4;
-            if(keys['a']) player.x -= 4; if(keys['d']) player.x += 4;
+        function spawnEnemy() {
+            let x, y;
+            if (Math.random() < 0.5) {
+                x = Math.random() < 0.5 ? -50 : canvas.width + 50;
+                y = Math.random() * canvas.height;
+            } else {
+                x = Math.random() * canvas.width;
+                y = Math.random() < 0.5 ? -50 : canvas.height + 50;
+            }
+            const type = Math.random() < 0.1 ? 'tank' : (Math.random() < 0.2 ? 'fast' : 'basic');
+            enemies.push({ x, y, ...enemyTypes[type] });
+        }
 
-            // Desenhar jogador
-            ctx.fillStyle = "#00d2ff";
-            ctx.fillRect(player.x-15, player.y-15, 30, 30);
+        function drawFace(e) {
+            ctx.fillStyle = 'black';
+            let s = e.size;
+            if (e.face === 'angry') {
+                ctx.fillRect(e.x - s/4, e.y - s/4, 4, 4); ctx.fillRect(e.x + s/8, e.y - s/4, 4, 4);
+                ctx.fillRect(e.x - s/4, e.y + s/6, s/2, 2);
+            } else if (e.face === 'mean') {
+                ctx.fillRect(e.x - s/3, e.y - s/4, 6, 6); ctx.fillRect(e.x + s/6, e.y - s/4, 4, 4);
+                ctx.fillStyle = 'white'; ctx.fillRect(e.x - s/4, e.y + s/8, s/2, 4);
+            } else {
+                ctx.beginPath(); ctx.arc(e.x - s/4, e.y - s/4, 3, 0, 7); ctx.arc(e.x + s/4, e.y - s/4, 3, 0, 7); ctx.fill();
+            }
+        }
+
+        function loop() {
+            if (!gameRunning) return;
+            requestAnimationFrame(loop);
+            frames++;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Movimento
+            if (keys['w']) player.y -= player.speed; if (keys['s']) player.y += player.speed;
+            if (keys['a']) player.x -= player.speed; if (keys['d']) player.x += player.speed;
+
+            // Desenhar Jogador
+            ctx.save();
+            ctx.translate(player.x, player.y);
+            ctx.rotate(Math.atan2(mouse.y - player.y, mouse.x - player.x));
+            ctx.fillStyle = player.color;
+            ctx.fillRect(-15, -15, 30, 30);
+            ctx.fillStyle = '#333'; ctx.fillRect(10, -5, 15, 10);
+            ctx.restore();
 
             // Inimigos
-            if(Math.random() < 0.02) enemies.push({x: Math.random()*canvas.width, y: -20});
+            if (frames % 60 === 0) spawnEnemy();
             enemies.forEach((en, i) => {
-                en.y += 2;
-                ctx.fillStyle = "red";
-                ctx.fillRect(en.x, en.y, 25, 25);
-                if(en.y > canvas.height) enemies.splice(i,1);
-                
-                // Colisão
-                if(Math.hypot(player.x - en.x, player.y - en.y) < 25) {
-                    player.hp -= 20; updateUI(); enemies.splice(i,1);
-                    if(player.hp <= 0) gameOver();
+                const ang = Math.atan2(player.y - en.y, player.x - en.x);
+                en.x += Math.cos(ang) * en.speed; en.y += Math.sin(ang) * en.speed;
+                ctx.fillStyle = en.color;
+                ctx.fillRect(en.x - en.size/2, en.y - en.size/2, en.size, en.size);
+                drawFace(en);
+
+                // Colisão Jogador
+                if (Math.hypot(player.x - en.x, player.y - en.y) < 30) {
+                    player.hp -= 10; enemies.splice(i, 1); updateHUD();
+                    if (player.hp <= 0) gameOver();
                 }
+
+                // Colisão Bala
+                projectiles.forEach((p, pi) => {
+                    if (Math.hypot(p.x - en.x, p.y - en.y) < en.size/2) {
+                        en.hp--; projectiles.splice(pi, 1);
+                        if (en.hp <= 0) { enemies.splice(i, 1); matchKills++; updateHUD(); }
+                    }
+                });
             });
 
             // Balas
             projectiles.forEach((p, i) => {
                 p.x += p.vx; p.y += p.vy;
-                ctx.fillStyle = "yellow";
-                ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, 7); ctx.fill();
-                
-                enemies.forEach((en, ei) => {
-                    if(Math.hypot(p.x - en.x, p.y - en.y) < 20) {
-                        enemies.splice(ei,1); projectiles.splice(i,1);
-                        matchKills++;
-                    }
-                });
+                ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, 7); ctx.fill();
+                if (p.x < 0 || p.x > canvas.width || p.y < 0 || p.y > canvas.height) projectiles.splice(i, 1);
             });
-
-            requestAnimationFrame(gameLoop);
         }
 
+        // Eventos
+        window.addEventListener('keydown', e => { 
+            keys[e.key.toLowerCase()] = true; 
+            if(e.key === 'r') { 
+                player.reloading = true; document.getElementById('reload-msg').style.display='block';
+                setTimeout(() => { player.ammo = 20; player.reloading = false; document.getElementById('reload-msg').style.display='none'; updateHUD(); }, 1000);
+            }
+        });
+        window.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
+        window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
+        window.addEventListener('mousedown', shoot);
+        document.getElementById('startBtn').addEventListener('click', login);
         window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
         canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+        updateRankingUI();
     </script>
 </body>
 </html>
