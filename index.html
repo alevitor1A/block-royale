@@ -2,51 +2,67 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Block Royale - Versão Definitiva</title>
+    <title>Block Royale - Mega Update</title>
     <style>
-        body { background: #121212; margin: 0; overflow: hidden; font-family: 'Segoe UI', sans-serif; color: white; user-select: none; }
-        canvas { display: block; background: #1e1e24; cursor: crosshair; }
+        body { background: #0a0a0c; margin: 0; overflow: hidden; font-family: 'Segoe UI', sans-serif; color: white; user-select: none; }
+        canvas { display: block; background: radial-gradient(circle, #1e1e24 0%, #111116 100%); cursor: crosshair; }
 
-        /* HUD Profissional */
-        #ui-layer { position: absolute; top: 20px; left: 20px; pointer-events: none; display: flex; flex-direction: column; gap: 10px; }
-        .stat-box { background: rgba(0, 0, 0, 0.8); padding: 12px 18px; border-left: 4px solid #00d2ff; border-radius: 4px; font-weight: bold; font-size: 14px; text-transform: uppercase; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
-        .stat-box span { color: #00d2ff; }
+        /* HUD Premium */
+        #ui-layer { position: absolute; top: 20px; left: 20px; pointer-events: none; display: flex; flex-direction: column; gap: 8px; }
+        .stat-box { 
+            background: rgba(0, 0, 0, 0.85); padding: 12px 20px; border-radius: 8px; 
+            border-left: 5px solid #00d2ff; font-weight: 900; font-size: 13px; 
+            text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+            transition: 0.3s;
+        }
+        .stat-box span { color: #00d2ff; font-size: 16px; }
         .danger { border-left-color: #ff4444; }
         .danger span { color: #ff4444; }
 
-        /* Overlays */
-        #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; }
-        #login-box { background: #25252b; padding: 40px; border-radius: 15px; border: 1px solid #333; text-align: center; box-shadow: 0 0 30px rgba(0,210,255,0.2); }
-        h1 { font-size: 55px; margin: 0 0 20px 0; letter-spacing: 4px; text-shadow: 0 0 20px #00d2ff; }
-        
-        input { padding: 15px; font-size: 18px; border-radius: 5px; border: 2px solid #333; background: #121212; color: #fff; width: 280px; margin-bottom: 20px; text-align: center; }
-        input:focus { border-color: #00d2ff; outline: none; }
-        button { padding: 15px 50px; font-size: 20px; background: #00d2ff; border: none; color: #000; font-weight: bold; cursor: pointer; border-radius: 5px; transition: 0.3s; }
-        button:hover { transform: scale(1.05); background: #fff; box-shadow: 0 0 20px #00d2ff; }
+        /* Barra de Recarga Central */
+        #reload-bar-container {
+            position: absolute; top: 60%; left: 50%; transform: translate(-50%, -50%);
+            width: 200px; height: 10px; background: rgba(0,0,0,0.5); border-radius: 5px; display: none; border: 1px solid #444;
+        }
+        #reload-bar-fill { width: 0%; height: 100%; background: #ffee00; border-radius: 5px; transition: linear; }
+        #reload-text { position: absolute; width: 100%; text-align: center; top: -25px; color: #ffee00; font-weight: bold; font-size: 14px; text-transform: uppercase; }
 
-        #ranking-list { margin-top: 25px; font-size: 15px; color: #888; text-align: left; border-top: 1px solid #444; padding-top: 15px; }
-        #reload-notice { position: absolute; top: 60%; left: 50%; transform: translate(-50%, -50%); color: #ff4444; font-weight: bold; font-size: 24px; display: none; text-shadow: 2px 2px #000; }
+        /* Overlay de Login e Ranking */
+        #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: flex; justify-content: center; align-items: center; z-index: 100; }
+        #login-card { background: #16161a; padding: 50px; border-radius: 20px; border: 1px solid #333; text-align: center; max-width: 400px; width: 90%; }
+        h1 { font-size: 48px; margin: 0 0 30px; background: linear-gradient(to bottom, #fff, #00d2ff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
+        input { padding: 18px; font-size: 18px; border-radius: 10px; border: 2px solid #222; background: #000; color: #fff; width: 100%; margin-bottom: 20px; box-sizing: border-box; text-align: center; }
+        input:focus { border-color: #00d2ff; outline: none; }
+        button { padding: 18px; width: 100%; font-size: 20px; background: #00d2ff; border: none; color: #000; font-weight: bold; cursor: pointer; border-radius: 10px; transition: 0.3s; text-transform: uppercase; }
+        button:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,210,255,0.4); background: #fff; }
+
+        #ranking-box { margin-top: 30px; text-align: left; background: rgba(255,255,255,0.03); padding: 15px; border-radius: 10px; font-size: 14px; color: #888; }
+        .rank-item { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #222; }
     </style>
 </head>
 <body>
 
     <div id="ui-layer">
-        <div class="stat-box">JOGADOR: <span id="ui-name">---</span></div>
-        <div class="stat-box">PATENTE: <span id="ui-rank">RECRUTA</span></div>
-        <div class="stat-box">KILLS TOTAIS: <span id="ui-total-kills">0</span></div>
-        <div class="stat-box danger">VIDA: <span id="ui-hp">100</span>%</div>
-        <div class="stat-box">MUNIÇÃO: <span id="ui-ammo">20</span>/20</div>
+        <div class="stat-box">PLAYER: <span id="ui-name">---</span></div>
+        <div class="stat-box">RANK: <span id="ui-rank">RECRUTA</span></div>
+        <div class="stat-box">TOTAL KILLS: <span id="ui-total-kills">0</span></div>
+        <div class="stat-box danger">HP: <span id="ui-hp">100</span>%</div>
+        <div class="stat-box">AMMO: <span id="ui-ammo">20</span>/20</div>
+        <div class="stat-box" style="border-left-color: #ffee00;">ONDA: <span id="ui-wave">1</span></div>
     </div>
 
-    <div id="reload-notice">RECARREGANDO...</div>
+    <div id="reload-bar-container">
+        <div id="reload-text">RECARREGANDO (R)</div>
+        <div id="reload-bar-fill"></div>
+    </div>
 
     <div id="overlay">
-        <div id="login-box">
+        <div id="login-card">
             <h1>BLOCK ROYALE</h1>
-            <input type="text" id="nick-input" placeholder="SEU APELIDO..." maxlength="12">
-            <br>
-            <button id="btn-play">JOGAR AGORA</button>
-            <div id="ranking-list">Carregando recordes...</div>
+            <input type="text" id="nick-input" placeholder="DIGITE SEU NICK..." maxlength="12">
+            <button id="btn-play">INICIAR PARTIDA</button>
+            <div id="ranking-box">Carregando Ranking Global...</div>
         </div>
     </div>
 
@@ -68,43 +84,44 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // --- CONFIGURAÇÕES DE JOGO ---
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         let gameActive = false;
         let userData = { name: "", kills: 0 };
         let sessionKills = 0;
+        let wave = 1;
+        let screenShake = 0;
 
-        const player = { x: 0, y: 0, size: 30, speed: 4, hp: 100, ammo: 20, maxAmmo: 20, reloading: false };
-        let enemies = [], bullets = [], keys = {}, mouse = { x: 0, y: 0 };
+        const player = { x: 0, y: 0, size: 30, speed: 4.5, hp: 100, ammo: 20, maxAmmo: 20, reloading: false };
+        let enemies = [], bullets = [], particles = [], keys = {}, mouse = { x: 0, y: 0 };
 
         const enemyLib = {
-            normal: { speed: 2.2, hp: 1, size: 30, color: '#ff4444', face: 'angry' },
-            fast:   { speed: 4.5, hp: 1, size: 22, color: '#ffee00', face: 'crazy' },
-            tank:   { speed: 1.2, hp: 5, size: 50, color: '#8800ff', face: 'mean' }
+            normal: { speed: 2.3, hp: 1, size: 32, color: '#ff4444', type: 'angry' },
+            fast:   { speed: 4.8, hp: 1, size: 24, color: '#ffee00', type: 'crazy' },
+            tank:   { speed: 1.3, hp: 6, size: 55, color: '#8800ff', type: 'boss' }
         };
 
-        function getRankName(k) {
+        function getRank(k) {
             if (k >= 1000000) return { n: "LOB", c: "#ff00ea" };
             if (k >= 35600) return { n: "GAST", c: "#cd7f32" };
             if (k >= 1000) return { n: "GOT", c: "#ffffff" };
             return { n: "RECRUTA", c: "#888" };
         }
 
-        async function loadRanking() {
+        async function updateRanking() {
             const snap = await get(child(ref(db), 'players'));
             if (snap.exists()) {
                 const list = Object.entries(snap.val())
                     .map(([name, d]) => ({ name, kills: d.totalKills || 0 }))
                     .sort((a, b) => b.kills - a.kills).slice(0, 5);
-                document.getElementById('ranking-list').innerHTML = "<b>TOP 5 GLOBAL:</b><br>" + 
-                    list.map((p, i) => `${i+1}º ${p.name} - ${p.kills} kills`).join("<br>");
+                document.getElementById('ranking-box').innerHTML = "<b>TOP 5 LENDAS:</b>" + 
+                    list.map((p, i) => `<div class="rank-item"><span>${i+1}º ${p.name}</span><span>${p.kills} KILLS</span></div>`).join("");
             }
         }
 
         async function start() {
             const name = document.getElementById('nick-input').value.trim().toUpperCase();
-            if (name.length < 3) return alert("Nome muito curto!");
+            if (name.length < 3) return alert("NICK MUITO CURTO!");
 
             const snap = await get(child(ref(db), `players/${name}`));
             userData.name = name;
@@ -113,160 +130,206 @@
             document.getElementById('overlay').style.display = 'none';
             document.getElementById('ui-name').innerText = name;
             
-            // Reset de partida
-            gameActive = true;
-            sessionKills = 0;
-            player.hp = 100;
-            player.ammo = 20;
-            player.x = canvas.width/2;
-            player.y = canvas.height/2;
-            enemies = []; bullets = [];
+            gameActive = true; sessionKills = 0; wave = 1;
+            player.hp = 100; player.ammo = 20;
+            player.x = canvas.width/2; player.y = canvas.height/2;
+            enemies = []; bullets = []; particles = [];
             updateUI();
             requestAnimationFrame(gameLoop);
         }
 
-        async function endGame() {
+        async function die() {
             gameActive = false;
+            screenShake = 20;
             const finalKills = userData.kills + sessionKills;
             await set(ref(db, 'players/' + userData.name), { totalKills: finalKills });
             userData.kills = finalKills;
-            
             document.getElementById('overlay').style.display = 'flex';
-            document.getElementById('btn-play').innerText = "RECOMEÇAR";
-            loadRanking();
+            document.getElementById('btn-play').innerText = "RENASCER";
+            updateRanking();
         }
 
         function updateUI() {
-            const rank = getRankName(userData.kills + sessionKills);
+            const rank = getRank(userData.kills + sessionKills);
             document.getElementById('ui-rank').innerText = rank.n;
             document.getElementById('ui-rank').style.color = rank.c;
             document.getElementById('ui-total-kills').innerText = userData.kills + sessionKills;
-            document.getElementById('ui-hp').innerText = player.hp;
+            document.getElementById('ui-hp').innerText = Math.ceil(player.hp);
             document.getElementById('ui-ammo').innerText = player.ammo;
+            document.getElementById('ui-wave').innerText = wave;
         }
 
-        // --- MECÂNICAS DE COMBATE (IA E ROSTOS) ---
-        function drawFace(x, y, size, type) {
-            ctx.fillStyle = 'black';
-            if (type === 'angry') {
-                ctx.fillRect(x - size/4, y - size/4, 4, 4); 
-                ctx.fillRect(x + size/8, y - size/4, 4, 4);
-                ctx.fillRect(x - size/4, y + size/8, size/2, 2);
-            } else if (type === 'mean') {
-                ctx.fillRect(x - size/3, y - size/5, 7, 7); 
-                ctx.fillRect(x + size/6, y - size/5, 7, 7);
-                ctx.fillStyle = 'white'; ctx.fillRect(x - size/4, y + size/6, size/2, 3);
-            } else { // Crazy
-                ctx.beginPath(); ctx.arc(x - size/4, y - size/4, 3, 0, 7); ctx.arc(x + size/4, y - size/4, 3, 0, 7); ctx.fill();
-                ctx.strokeRect(x - size/6, y + size/8, size/3, 2);
+        function createExplosion(x, y, color) {
+            for(let i=0; i<8; i++) {
+                particles.push({
+                    x, y, 
+                    vx: (Math.random()-0.5)*10, 
+                    vy: (Math.random()-0.5)*10, 
+                    life: 1.0, 
+                    color
+                });
             }
         }
 
-        function spawnEnemy() {
-            if (!gameActive) return;
-            const side = Math.floor(Math.random() * 4);
-            let x, y;
-            if (side === 0) { x = Math.random() * canvas.width; y = -50; }
-            else if (side === 1) { x = canvas.width + 50; y = Math.random() * canvas.height; }
-            else if (side === 2) { x = Math.random() * canvas.width; y = canvas.height + 50; }
-            else { x = -50; y = Math.random() * canvas.height; }
+        function drawEnemyFace(x, y, size, type, color) {
+            ctx.fillStyle = 'rgba(0,0,0,0.7)';
+            const eyeSize = size/6;
+            if (type === 'angry') {
+                ctx.save();
+                ctx.translate(x, y);
+                // Sobrancelhas bravas
+                ctx.rotate(-0.2); ctx.fillRect(-size/3, -size/3, size/4, 4);
+                ctx.rotate(0.4); ctx.fillRect(size/10, -size/3, size/4, 4);
+                ctx.restore();
+                ctx.fillRect(x - size/4, y - size/6, eyeSize, eyeSize);
+                ctx.fillRect(x + size/8, y - size/6, eyeSize, eyeSize);
+                ctx.fillRect(x - size/6, y + size/6, size/3, 3);
+            } else if (type === 'boss') {
+                ctx.fillStyle = '#fff';
+                ctx.fillRect(x - size/3, y - size/4, eyeSize*1.5, eyeSize*1.5);
+                ctx.fillRect(x + size/6, y - size/4, eyeSize*1.5, eyeSize*1.5);
+                ctx.fillStyle = 'red'; ctx.fillRect(x - size/4, y + size/6, size/2, 5);
+            } else { // Crazy
+                ctx.beginPath(); ctx.arc(x - size/4, y - size/6, eyeSize, 0, 7); ctx.fill();
+                ctx.beginPath(); ctx.arc(x + size/4, y - size/6, eyeSize, 0, 7); ctx.fill();
+                ctx.strokeStyle = 'black'; ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.arc(x, y + size/8, size/4, 0, Math.PI); ctx.stroke();
+            }
+        }
 
-            const rand = Math.random();
-            const type = rand < 0.1 ? 'tank' : (rand < 0.25 ? 'fast' : 'normal');
-            enemies.push({ x, y, ...enemyLib[type], currentHp: enemyLib[type].hp });
+        function reload() {
+            if (player.reloading || player.ammo === player.maxAmmo) return;
+            player.reloading = true;
+            const container = document.getElementById('reload-bar-container');
+            const fill = document.getElementById('reload-bar-fill');
+            container.style.display = 'block';
+            fill.style.transition = 'none';
+            fill.style.width = '0%';
+            
+            setTimeout(() => {
+                fill.style.transition = 'width 1.2s linear';
+                fill.style.width = '100%';
+            }, 10);
+
+            setTimeout(() => {
+                player.ammo = player.maxAmmo;
+                player.reloading = false;
+                container.style.display = 'none';
+                updateUI();
+            }, 1210);
         }
 
         function gameLoop() {
             if (!gameActive) return;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+            if (screenShake > 0) {
+                ctx.translate((Math.random()-0.5)*screenShake, (Math.random()-0.5)*screenShake);
+                screenShake *= 0.9;
+            }
+            ctx.clearRect(-100, -100, canvas.width+200, canvas.height+200);
+
+            // Partículas
+            particles.forEach((p, i) => {
+                p.x += p.vx; p.y += p.vy; p.life -= 0.02;
+                ctx.globalAlpha = p.life;
+                ctx.fillStyle = p.color;
+                ctx.fillRect(p.x, p.y, 4, 4);
+                if(p.life <= 0) particles.splice(i, 1);
+            });
+            ctx.globalAlpha = 1;
 
             // Movimento Jogador
-            if (keys['w'] && player.y > 0) player.y -= player.speed;
-            if (keys['s'] && player.y < canvas.height) player.y += player.speed;
-            if (keys['a'] && player.x > 0) player.x -= player.speed;
-            if (keys['d'] && player.x < canvas.width) player.x += player.speed;
+            const moveSpeed = player.speed;
+            if (keys['w'] && player.y > 0) player.y -= moveSpeed;
+            if (keys['s'] && player.y < canvas.height) player.y += moveSpeed;
+            if (keys['a'] && player.x > 0) player.x -= moveSpeed;
+            if (keys['d'] && player.x < canvas.width) player.x += moveSpeed;
 
-            // Desenhar Jogador (com direção)
+            // Desenhar Jogador
             ctx.save();
             ctx.translate(player.x, player.y);
             ctx.rotate(Math.atan2(mouse.y - player.y, mouse.x - player.x));
-            ctx.fillStyle = '#00d2ff'; ctx.fillRect(-15, -15, 30, 30);
-            ctx.fillStyle = '#111'; ctx.fillRect(10, -5, 12, 10);
+            ctx.fillStyle = '#00d2ff';
+            ctx.shadowBlur = 15; ctx.shadowColor = '#00d2ff';
+            ctx.fillRect(-15, -15, 30, 30);
+            ctx.fillStyle = '#333'; ctx.fillRect(10, -6, 15, 12);
             ctx.restore();
 
-            // Lógica Inimigos (IA de Perseguição)
+            // Inimigos e Ondas
+            if (enemies.length === 0) { wave++; updateUI(); for(let i=0; i<wave*3; i++) spawnEnemy(); }
+            
             enemies.forEach((en, i) => {
-                const dx = player.x - en.x;
-                const dy = player.y - en.y;
-                const dist = Math.hypot(dx, dy);
-                
-                // Movimento em direção ao player
-                en.x += (dx / dist) * en.speed;
-                en.y += (dy / dist) * en.speed;
+                const dist = Math.hypot(player.x - en.x, player.y - en.y);
+                en.x += ((player.x - en.x) / dist) * en.speed;
+                en.y += ((player.y - en.y) / dist) * en.speed;
 
-                // Desenho Inimigo
                 ctx.fillStyle = en.color;
+                ctx.shadowBlur = 10; ctx.shadowColor = en.color;
                 ctx.fillRect(en.x - en.size/2, en.y - en.size/2, en.size, en.size);
-                drawFace(en.x, en.y, en.size, en.face);
+                ctx.shadowBlur = 0;
+                drawEnemyFace(en.x, en.y, en.size, en.type, en.color);
 
-                // Colisão com Player
-                if (dist < 25) {
-                    player.hp -= 0.5; // Dano contínuo ao encostar
-                    updateUI();
-                    if (player.hp <= 0) endGame();
+                if (dist < 28) {
+                    player.hp -= 0.4; screenShake = 5; updateUI();
+                    if (player.hp <= 0) die();
                 }
             });
 
-            // Lógica Balas
+            // Balas
             bullets.forEach((b, bi) => {
                 b.x += b.vx; b.y += b.vy;
-                ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(b.x, b.y, 4, 0, 7); ctx.fill();
+                ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(b.x, b.y, 5, 0, 7); ctx.fill();
 
                 enemies.forEach((en, ei) => {
                     if (Math.hypot(b.x - en.x, b.y - en.y) < en.size/2) {
-                        en.currentHp--;
-                        bullets.splice(bi, 1);
-                        if (en.currentHp <= 0) {
-                            enemies.splice(ei, 1);
-                            sessionKills++;
-                            updateUI();
+                        en.hp--; bullets.splice(bi, 1);
+                        if (en.hp <= 0) {
+                            createExplosion(en.x, en.y, en.color);
+                            enemies.splice(ei, 1); sessionKills++; updateUI();
                         }
                     }
                 });
+                if(b.x < 0 || b.x > canvas.width || b.y < 0 || b.y > canvas.height) bullets.splice(bi, 1);
             });
 
-            if (Math.random() < 0.03) spawnEnemy();
+            ctx.restore();
             requestAnimationFrame(gameLoop);
         }
 
-        // --- CONTROLES ---
-        window.addEventListener('keydown', e => {
-            keys[e.key.toLowerCase()] = true;
-            if (e.key === 'r' && !player.reloading && player.ammo < 20) {
-                player.reloading = true;
-                document.getElementById('reload-notice').style.display = 'block';
-                setTimeout(() => {
-                    player.ammo = 20; player.reloading = false;
-                    document.getElementById('reload-notice').style.display = 'none';
-                    updateUI();
-                }, 1200);
-            }
+        function spawnEnemy() {
+            const side = Math.floor(Math.random() * 4);
+            let x, y;
+            if(side===0){x=Math.random()*canvas.width; y=-100;}
+            else if(side===1){x=canvas.width+100; y=Math.random()*canvas.height;}
+            else if(side===2){x=Math.random()*canvas.width; y=canvas.height+100;}
+            else {x=-100; y=Math.random()*canvas.height;}
+            
+            const r = Math.random();
+            const type = r < 0.1 ? 'tank' : (r < 0.3 ? 'fast' : 'normal');
+            enemies.push({ x, y, ...enemyLib[type] });
+        }
+
+        // Listeners
+        window.addEventListener('keydown', e => { 
+            keys[e.key.toLowerCase()] = true; 
+            if(e.key.toLowerCase() === 'r') reload(); 
         });
         window.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
         window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
         window.addEventListener('mousedown', () => {
             if (gameActive && player.ammo > 0 && !player.reloading) {
-                const angle = Math.atan2(mouse.y - player.y, mouse.x - player.x);
-                bullets.push({ x: player.x, y: player.y, vx: Math.cos(angle)*12, vy: Math.sin(angle)*12 });
-                player.ammo--;
-                updateUI();
+                const ang = Math.atan2(mouse.y - player.y, mouse.x - player.x);
+                bullets.push({ x: player.x, y: player.y, vx: Math.cos(ang)*15, vy: Math.sin(ang)*15 });
+                player.ammo--; screenShake = 3; updateUI();
+            } else if (player.ammo <= 0 && !player.reloading) {
+                reload();
             }
         });
 
         document.getElementById('btn-play').addEventListener('click', start);
         window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
         canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-        loadRanking();
+        updateRanking();
     </script>
 </body>
 </html>
