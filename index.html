@@ -2,50 +2,51 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <title>Block Royale - Rank Edition</title>
+    <title>Block Royale - Versão Definitiva</title>
     <style>
-        body { background: #121212; margin: 0; overflow: hidden; font-family: 'Segoe UI', Tahoma, sans-serif; color: white; user-select: none; }
+        body { background: #121212; margin: 0; overflow: hidden; font-family: 'Segoe UI', sans-serif; color: white; user-select: none; }
         canvas { display: block; background: #1e1e24; cursor: crosshair; }
 
-        /* HUD */
+        /* HUD Profissional */
         #ui-layer { position: absolute; top: 20px; left: 20px; pointer-events: none; display: flex; flex-direction: column; gap: 10px; }
-        .stat-box { background: rgba(0, 0, 0, 0.7); padding: 10px 15px; border-left: 4px solid #00d2ff; border-radius: 4px; font-weight: bold; font-size: 14px; text-transform: uppercase; box-shadow: 0 4px 6px rgba(0,0,0,0.3); }
+        .stat-box { background: rgba(0, 0, 0, 0.8); padding: 12px 18px; border-left: 4px solid #00d2ff; border-radius: 4px; font-weight: bold; font-size: 14px; text-transform: uppercase; box-shadow: 0 4px 15px rgba(0,0,0,0.5); }
         .stat-box span { color: #00d2ff; }
-        .stat-box.danger { border-color: #ff4444; }
-        .stat-box.danger span { color: #ff4444; }
+        .danger { border-left-color: #ff4444; }
+        .danger span { color: #ff4444; }
 
-        /* Telas de Overlay */
-        #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; text-align: center; }
-        h1 { font-size: 60px; margin: 0 0 20px 0; text-transform: uppercase; letter-spacing: 5px; color: #fff; text-shadow: 0 0 20px #00d2ff; }
+        /* Overlays */
+        #overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 10; }
+        #login-box { background: #25252b; padding: 40px; border-radius: 15px; border: 1px solid #333; text-align: center; box-shadow: 0 0 30px rgba(0,210,255,0.2); }
+        h1 { font-size: 55px; margin: 0 0 20px 0; letter-spacing: 4px; text-shadow: 0 0 20px #00d2ff; }
         
-        #login-box { display: flex; flex-direction: column; gap: 15px; align-items: center; background: rgba(255,255,255,0.05); padding: 30px; border-radius: 10px; border: 1px solid #333; }
-        input { padding: 15px; font-size: 18px; border-radius: 5px; border: 2px solid #00d2ff; background: #000; color: #fff; width: 280px; text-align: center; outline: none; }
-        button { padding: 15px 40px; font-size: 22px; background: #00d2ff; border: none; color: #000; font-weight: bold; cursor: pointer; transition: 0.2s; border-radius: 5px; }
-        button:hover { transform: scale(1.1); background: #fff; box-shadow: 0 0 20px #00d2ff; }
+        input { padding: 15px; font-size: 18px; border-radius: 5px; border: 2px solid #333; background: #121212; color: #fff; width: 280px; margin-bottom: 20px; text-align: center; }
+        input:focus { border-color: #00d2ff; outline: none; }
+        button { padding: 15px 50px; font-size: 20px; background: #00d2ff; border: none; color: #000; font-weight: bold; cursor: pointer; border-radius: 5px; transition: 0.3s; }
+        button:hover { transform: scale(1.05); background: #fff; box-shadow: 0 0 20px #00d2ff; }
 
-        #ranking-global { margin-top: 25px; font-size: 16px; color: #aaa; line-height: 1.6; }
-        #reload-msg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 20px; color: #ff4444; font-weight: bold; display: none; text-shadow: 2px 2px 0 #000; }
+        #ranking-list { margin-top: 25px; font-size: 15px; color: #888; text-align: left; border-top: 1px solid #444; padding-top: 15px; }
+        #reload-notice { position: absolute; top: 60%; left: 50%; transform: translate(-50%, -50%); color: #ff4444; font-weight: bold; font-size: 24px; display: none; text-shadow: 2px 2px #000; }
     </style>
 </head>
 <body>
 
     <div id="ui-layer">
-        <div class="stat-box">JOGADOR: <span id="ui-player-name">---</span></div>
-        <div class="stat-box" id="rank-box">PATENTE: <span id="rank-display">CARREGANDO...</span></div>
-        <div class="stat-box">KILLS TOTAIS: <span id="kills-display">0</span></div>
-        <div class="stat-box danger">VIDA: <span id="hp">100</span>%</div>
-        <div class="stat-box">MUNIÇÃO: <span id="ammo">20</span> / 20</div>
+        <div class="stat-box">JOGADOR: <span id="ui-name">---</span></div>
+        <div class="stat-box">PATENTE: <span id="ui-rank">RECRUTA</span></div>
+        <div class="stat-box">KILLS TOTAIS: <span id="ui-total-kills">0</span></div>
+        <div class="stat-box danger">VIDA: <span id="ui-hp">100</span>%</div>
+        <div class="stat-box">MUNIÇÃO: <span id="ui-ammo">20</span>/20</div>
     </div>
 
-    <div id="reload-msg">APERTE 'R' PARA RECARREGAR!</div>
+    <div id="reload-notice">RECARREGANDO...</div>
 
     <div id="overlay">
-        <h1 id="main-title">BLOCK ROYALE</h1>
-        
         <div id="login-box">
-            <input type="text" id="username-input" placeholder="SEU APELIDO..." maxlength="12">
-            <button id="startBtn">ENTRAR E JOGAR</button>
-            <div id="ranking-global">Buscando lendas do servidor...</div>
+            <h1>BLOCK ROYALE</h1>
+            <input type="text" id="nick-input" placeholder="SEU APELIDO..." maxlength="12">
+            <br>
+            <button id="btn-play">JOGAR AGORA</button>
+            <div id="ranking-list">Carregando recordes...</div>
         </div>
     </div>
 
@@ -67,200 +68,205 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // --- LÓGICA DO JOGO (VERSÃO ORIGINAL REPARADA) ---
+        // --- CONFIGURAÇÕES DE JOGO ---
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
-        let gameRunning = false;
-        let currentPlayer = { name: "", totalKills: 0 };
-        let matchKills = 0;
-        let frames = 0;
+        let gameActive = false;
+        let userData = { name: "", kills: 0 };
+        let sessionKills = 0;
 
-        const player = { x: 0, y: 0, size: 30, color: '#00d2ff', speed: 4, hp: 100, ammo: 20, maxAmmo: 20, reloading: false };
-        let enemies = [], projectiles = [], particles = [], keys = {}, mouse = { x: 0, y: 0 };
+        const player = { x: 0, y: 0, size: 30, speed: 4, hp: 100, ammo: 20, maxAmmo: 20, reloading: false };
+        let enemies = [], bullets = [], keys = {}, mouse = { x: 0, y: 0 };
 
-        const enemyTypes = {
-            basic: { color: '#ff4444', speed: 2, hp: 1, size: 30, score: 10, face: 'angry' },
-            tank:  { color: '#8800ff', speed: 1, hp: 5, size: 50, score: 50, face: 'mean' },
-            fast:  { color: '#ffee00', speed: 5, hp: 1, size: 20, score: 30, face: 'crazy' }
+        const enemyLib = {
+            normal: { speed: 2.2, hp: 1, size: 30, color: '#ff4444', face: 'angry' },
+            fast:   { speed: 4.5, hp: 1, size: 22, color: '#ffee00', face: 'crazy' },
+            tank:   { speed: 1.2, hp: 5, size: 50, color: '#8800ff', face: 'mean' }
         };
 
-        function getRank(kills) {
-            if (kills >= 1000000) return { nome: "LOB", cor: "#ff00ea" };
-            if (kills >= 35600) return { nome: "GAST", cor: "#cd7f32" };
-            if (kills >= 1000) return { nome: "GOT", cor: "#ffffff" };
-            return { nome: "RECRUTA", cor: "#888" };
+        function getRankName(k) {
+            if (k >= 1000000) return { n: "LOB", c: "#ff00ea" };
+            if (k >= 35600) return { n: "GAST", c: "#cd7f32" };
+            if (k >= 1000) return { n: "GOT", c: "#ffffff" };
+            return { n: "RECRUTA", c: "#888" };
         }
 
-        async function updateRankingUI() {
-            const rankingDiv = document.getElementById('ranking-global');
-            try {
-                const snapshot = await get(child(ref(db), 'players'));
-                if (snapshot.exists()) {
-                    const players = snapshot.val();
-                    const top5 = Object.entries(players)
-                        .map(([name, data]) => ({ name, kills: data.totalKills || 0 }))
-                        .sort((a, b) => b.kills - a.kills)
-                        .slice(0, 5);
-                    
-                    rankingDiv.innerHTML = "<b>🏆 RANKING GLOBAL:</b><br>" + 
-                        top5.map((p, i) => `${i+1}º ${p.name} - ${p.kills}`).join("<br>");
-                }
-            } catch (e) { rankingDiv.innerText = "Ranking indisponível."; }
+        async function loadRanking() {
+            const snap = await get(child(ref(db), 'players'));
+            if (snap.exists()) {
+                const list = Object.entries(snap.val())
+                    .map(([name, d]) => ({ name, kills: d.totalKills || 0 }))
+                    .sort((a, b) => b.kills - a.kills).slice(0, 5);
+                document.getElementById('ranking-list').innerHTML = "<b>TOP 5 GLOBAL:</b><br>" + 
+                    list.map((p, i) => `${i+1}º ${p.name} - ${p.kills} kills`).join("<br>");
+            }
         }
 
-        async function login() {
-            const name = document.getElementById('username-input').value.trim().toUpperCase();
+        async function start() {
+            const name = document.getElementById('nick-input').value.trim().toUpperCase();
             if (name.length < 3) return alert("Nome muito curto!");
-            
-            document.getElementById('startBtn').innerText = "CARREGANDO...";
-            const snapshot = await get(child(ref(db), `players/${name}`));
-            
-            currentPlayer.name = name;
-            currentPlayer.totalKills = snapshot.exists() ? (snapshot.val().totalKills || 0) : 0;
-            
-            document.getElementById('ui-player-name').innerText = name;
-            startGame();
-        }
 
-        function startGame() {
-            gameRunning = true;
+            const snap = await get(child(ref(db), `players/${name}`));
+            userData.name = name;
+            userData.kills = snap.exists() ? snap.val().totalKills : 0;
+
             document.getElementById('overlay').style.display = 'none';
-            matchKills = 0;
+            document.getElementById('ui-name').innerText = name;
+            
+            // Reset de partida
+            gameActive = true;
+            sessionKills = 0;
             player.hp = 100;
             player.ammo = 20;
-            player.x = canvas.width / 2;
-            player.y = canvas.height / 2;
-            enemies = []; projectiles = []; particles = [];
-            updateHUD();
-            loop();
+            player.x = canvas.width/2;
+            player.y = canvas.height/2;
+            enemies = []; bullets = [];
+            updateUI();
+            requestAnimationFrame(gameLoop);
         }
 
-        async function gameOver() {
-            gameRunning = false;
-            const newTotal = currentPlayer.totalKills + matchKills;
-            await set(ref(db, 'players/' + currentPlayer.name), { totalKills: newTotal });
-            currentPlayer.totalKills = newTotal;
+        async function endGame() {
+            gameActive = false;
+            const finalKills = userData.kills + sessionKills;
+            await set(ref(db, 'players/' + userData.name), { totalKills: finalKills });
+            userData.kills = finalKills;
             
             document.getElementById('overlay').style.display = 'flex';
-            document.getElementById('main-title').innerText = "FIM DE JOGO";
-            document.getElementById('startBtn').innerText = "TENTAR DE NOVO";
-            updateRankingUI();
+            document.getElementById('btn-play').innerText = "RECOMEÇAR";
+            loadRanking();
         }
 
-        function updateHUD() {
-            const rank = getRank(currentPlayer.totalKills + matchKills);
-            document.getElementById('rank-display').innerText = rank.nome;
-            document.getElementById('rank-display').style.color = rank.cor;
-            document.getElementById('kills-display').innerText = currentPlayer.totalKills + matchKills;
-            document.getElementById('hp').innerText = player.hp;
-            document.getElementById('ammo').innerText = player.ammo;
+        function updateUI() {
+            const rank = getRankName(userData.kills + sessionKills);
+            document.getElementById('ui-rank').innerText = rank.n;
+            document.getElementById('ui-rank').style.color = rank.c;
+            document.getElementById('ui-total-kills').innerText = userData.kills + sessionKills;
+            document.getElementById('ui-hp').innerText = player.hp;
+            document.getElementById('ui-ammo').innerText = player.ammo;
         }
 
-        // --- SISTEMA DE COMBATE ORIGINAL ---
-        function shoot() {
-            if (player.reloading || player.ammo <= 0) return;
-            const angle = Math.atan2(mouse.y - player.y, mouse.x - player.x);
-            projectiles.push({
-                x: player.x, y: player.y,
-                vx: Math.cos(angle) * 12, vy: Math.sin(angle) * 12
-            });
-            player.ammo--;
-            updateHUD();
+        // --- MECÂNICAS DE COMBATE (IA E ROSTOS) ---
+        function drawFace(x, y, size, type) {
+            ctx.fillStyle = 'black';
+            if (type === 'angry') {
+                ctx.fillRect(x - size/4, y - size/4, 4, 4); 
+                ctx.fillRect(x + size/8, y - size/4, 4, 4);
+                ctx.fillRect(x - size/4, y + size/8, size/2, 2);
+            } else if (type === 'mean') {
+                ctx.fillRect(x - size/3, y - size/5, 7, 7); 
+                ctx.fillRect(x + size/6, y - size/5, 7, 7);
+                ctx.fillStyle = 'white'; ctx.fillRect(x - size/4, y + size/6, size/2, 3);
+            } else { // Crazy
+                ctx.beginPath(); ctx.arc(x - size/4, y - size/4, 3, 0, 7); ctx.arc(x + size/4, y - size/4, 3, 0, 7); ctx.fill();
+                ctx.strokeRect(x - size/6, y + size/8, size/3, 2);
+            }
         }
 
         function spawnEnemy() {
+            if (!gameActive) return;
+            const side = Math.floor(Math.random() * 4);
             let x, y;
-            if (Math.random() < 0.5) {
-                x = Math.random() < 0.5 ? -50 : canvas.width + 50;
-                y = Math.random() * canvas.height;
-            } else {
-                x = Math.random() * canvas.width;
-                y = Math.random() < 0.5 ? -50 : canvas.height + 50;
-            }
-            const type = Math.random() < 0.1 ? 'tank' : (Math.random() < 0.2 ? 'fast' : 'basic');
-            enemies.push({ x, y, ...enemyTypes[type] });
+            if (side === 0) { x = Math.random() * canvas.width; y = -50; }
+            else if (side === 1) { x = canvas.width + 50; y = Math.random() * canvas.height; }
+            else if (side === 2) { x = Math.random() * canvas.width; y = canvas.height + 50; }
+            else { x = -50; y = Math.random() * canvas.height; }
+
+            const rand = Math.random();
+            const type = rand < 0.1 ? 'tank' : (rand < 0.25 ? 'fast' : 'normal');
+            enemies.push({ x, y, ...enemyLib[type], currentHp: enemyLib[type].hp });
         }
 
-        function drawFace(e) {
-            ctx.fillStyle = 'black';
-            let s = e.size;
-            if (e.face === 'angry') {
-                ctx.fillRect(e.x - s/4, e.y - s/4, 4, 4); ctx.fillRect(e.x + s/8, e.y - s/4, 4, 4);
-                ctx.fillRect(e.x - s/4, e.y + s/6, s/2, 2);
-            } else if (e.face === 'mean') {
-                ctx.fillRect(e.x - s/3, e.y - s/4, 6, 6); ctx.fillRect(e.x + s/6, e.y - s/4, 4, 4);
-                ctx.fillStyle = 'white'; ctx.fillRect(e.x - s/4, e.y + s/8, s/2, 4);
-            } else {
-                ctx.beginPath(); ctx.arc(e.x - s/4, e.y - s/4, 3, 0, 7); ctx.arc(e.x + s/4, e.y - s/4, 3, 0, 7); ctx.fill();
-            }
-        }
-
-        function loop() {
-            if (!gameRunning) return;
-            requestAnimationFrame(loop);
-            frames++;
+        function gameLoop() {
+            if (!gameActive) return;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Movimento
-            if (keys['w']) player.y -= player.speed; if (keys['s']) player.y += player.speed;
-            if (keys['a']) player.x -= player.speed; if (keys['d']) player.x += player.speed;
+            // Movimento Jogador
+            if (keys['w'] && player.y > 0) player.y -= player.speed;
+            if (keys['s'] && player.y < canvas.height) player.y += player.speed;
+            if (keys['a'] && player.x > 0) player.x -= player.speed;
+            if (keys['d'] && player.x < canvas.width) player.x += player.speed;
 
-            // Desenhar Jogador
+            // Desenhar Jogador (com direção)
             ctx.save();
             ctx.translate(player.x, player.y);
             ctx.rotate(Math.atan2(mouse.y - player.y, mouse.x - player.x));
-            ctx.fillStyle = player.color;
-            ctx.fillRect(-15, -15, 30, 30);
-            ctx.fillStyle = '#333'; ctx.fillRect(10, -5, 15, 10);
+            ctx.fillStyle = '#00d2ff'; ctx.fillRect(-15, -15, 30, 30);
+            ctx.fillStyle = '#111'; ctx.fillRect(10, -5, 12, 10);
             ctx.restore();
 
-            // Inimigos
-            if (frames % 60 === 0) spawnEnemy();
+            // Lógica Inimigos (IA de Perseguição)
             enemies.forEach((en, i) => {
-                const ang = Math.atan2(player.y - en.y, player.x - en.x);
-                en.x += Math.cos(ang) * en.speed; en.y += Math.sin(ang) * en.speed;
+                const dx = player.x - en.x;
+                const dy = player.y - en.y;
+                const dist = Math.hypot(dx, dy);
+                
+                // Movimento em direção ao player
+                en.x += (dx / dist) * en.speed;
+                en.y += (dy / dist) * en.speed;
+
+                // Desenho Inimigo
                 ctx.fillStyle = en.color;
                 ctx.fillRect(en.x - en.size/2, en.y - en.size/2, en.size, en.size);
-                drawFace(en);
+                drawFace(en.x, en.y, en.size, en.face);
 
-                // Colisão Jogador
-                if (Math.hypot(player.x - en.x, player.y - en.y) < 30) {
-                    player.hp -= 10; enemies.splice(i, 1); updateHUD();
-                    if (player.hp <= 0) gameOver();
+                // Colisão com Player
+                if (dist < 25) {
+                    player.hp -= 0.5; // Dano contínuo ao encostar
+                    updateUI();
+                    if (player.hp <= 0) endGame();
                 }
+            });
 
-                // Colisão Bala
-                projectiles.forEach((p, pi) => {
-                    if (Math.hypot(p.x - en.x, p.y - en.y) < en.size/2) {
-                        en.hp--; projectiles.splice(pi, 1);
-                        if (en.hp <= 0) { enemies.splice(i, 1); matchKills++; updateHUD(); }
+            // Lógica Balas
+            bullets.forEach((b, bi) => {
+                b.x += b.vx; b.y += b.vy;
+                ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(b.x, b.y, 4, 0, 7); ctx.fill();
+
+                enemies.forEach((en, ei) => {
+                    if (Math.hypot(b.x - en.x, b.y - en.y) < en.size/2) {
+                        en.currentHp--;
+                        bullets.splice(bi, 1);
+                        if (en.currentHp <= 0) {
+                            enemies.splice(ei, 1);
+                            sessionKills++;
+                            updateUI();
+                        }
                     }
                 });
             });
 
-            // Balas
-            projectiles.forEach((p, i) => {
-                p.x += p.vx; p.y += p.vy;
-                ctx.fillStyle = 'white'; ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, 7); ctx.fill();
-                if (p.x < 0 || p.x > canvas.width || p.y < 0 || p.y > canvas.height) projectiles.splice(i, 1);
-            });
+            if (Math.random() < 0.03) spawnEnemy();
+            requestAnimationFrame(gameLoop);
         }
 
-        // Eventos
-        window.addEventListener('keydown', e => { 
-            keys[e.key.toLowerCase()] = true; 
-            if(e.key === 'r') { 
-                player.reloading = true; document.getElementById('reload-msg').style.display='block';
-                setTimeout(() => { player.ammo = 20; player.reloading = false; document.getElementById('reload-msg').style.display='none'; updateHUD(); }, 1000);
+        // --- CONTROLES ---
+        window.addEventListener('keydown', e => {
+            keys[e.key.toLowerCase()] = true;
+            if (e.key === 'r' && !player.reloading && player.ammo < 20) {
+                player.reloading = true;
+                document.getElementById('reload-notice').style.display = 'block';
+                setTimeout(() => {
+                    player.ammo = 20; player.reloading = false;
+                    document.getElementById('reload-notice').style.display = 'none';
+                    updateUI();
+                }, 1200);
             }
         });
         window.addEventListener('keyup', e => keys[e.key.toLowerCase()] = false);
         window.addEventListener('mousemove', e => { mouse.x = e.clientX; mouse.y = e.clientY; });
-        window.addEventListener('mousedown', shoot);
-        document.getElementById('startBtn').addEventListener('click', login);
+        window.addEventListener('mousedown', () => {
+            if (gameActive && player.ammo > 0 && !player.reloading) {
+                const angle = Math.atan2(mouse.y - player.y, mouse.x - player.x);
+                bullets.push({ x: player.x, y: player.y, vx: Math.cos(angle)*12, vy: Math.sin(angle)*12 });
+                player.ammo--;
+                updateUI();
+            }
+        });
+
+        document.getElementById('btn-play').addEventListener('click', start);
         window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
         canvas.width = window.innerWidth; canvas.height = window.innerHeight;
-        updateRankingUI();
+        loadRanking();
     </script>
 </body>
 </html>
