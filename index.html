@@ -163,7 +163,40 @@
         }
         .shop-item h3 { margin: 0 0 5px 0; color: #fff; font-size: 16px; }
         .shop-item p { margin: 0; color: #ffd700; font-weight: bold; font-size: 14px; }
-        
+
+        /* --- ESTILO DO APOIO VIA PIX (Linha 166) --- */
+        .shop-support {
+            grid-column: span 2;
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(50, 188, 173, 0.1);
+            border: 1px solid #32bcad;
+            border-radius: 12px;
+            text-align: center;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .btn-pix {
+            background: #32bcad;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: 900;
+            cursor: pointer;
+            transition: 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            width: 85%;
+            font-family: 'Segoe UI', sans-serif;
+            text-transform: uppercase;
+        }
+        .btn-pix:hover {
+            background: #289c8f;
+            transform: scale(1.02);
+            box-shadow: 0 0 15px rgba(50, 188, 173, 0.4);
+        }
+
         /* --- TELA DE LOGIN --- */
         #login-overlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
@@ -265,6 +298,14 @@
                 <p>60 MOEDAS</p>
             </div>
         </div>
+
+        <div class="shop-support">
+            <p style="color: #32bcad; font-size: 13px; margin-bottom: 12px; font-weight: bold;">🚀 AJUDE A MELHORAR O JOGO</p>
+            <a href="https://livepix.gg/sandrovelarifps" target="_blank" class="btn-pix">
+                APOIAR VIA PIX
+            </a>
+        </div>
+
         <button class="btn-main" style="margin-top:20px; background:#ffd700;" onclick="window.game.nextWave()">PRÓXIMA ONDA</button>
     </div>
 
@@ -300,7 +341,6 @@
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         
-        // Ajuste de Tela
         function resize() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
@@ -308,7 +348,6 @@
         window.addEventListener('resize', resize);
         resize();
 
-        // Estado Global do Jogo
         const state = {
             active: false,
             inShop: false,
@@ -322,7 +361,6 @@
             mouse: { x: 0, y: 0 }
         };
 
-        // Biomas
         const biomes = [
             { name: "NEON CITY", bg: "#0a0a0f", floor: "#151520", grid: "#222" },
             { name: "MARTE", bg: "#1a0505", floor: "#2a0a0a", grid: "#441111" },
@@ -331,7 +369,6 @@
         ];
         let currentBiome = biomes[0];
 
-        // Jogador
         const player = {
             x: canvas.width / 2,
             y: canvas.height / 2,
@@ -345,7 +382,6 @@
             upgrades: { triple: false }
         };
 
-        // Entidades
         let enemies = [];
         let bullets = [];
         let particles = [];
@@ -376,7 +412,6 @@
         function spawnEnemy() {
             const side = Math.floor(Math.random() * 4);
             let x, y;
-            // Spawn fora da tela
             if(side === 0) { x = Math.random() * canvas.width; y = -50; }
             else if(side === 1) { x = canvas.width + 50; y = Math.random() * canvas.height; }
             else if(side === 2) { x = Math.random() * canvas.width; y = canvas.height + 50; }
@@ -432,7 +467,7 @@
                 const targetY = state.mouse.y;
                 explosions.push({
                     x: targetX, y: targetY,
-                    timer: 60, // frames until boom
+                    timer: 60,
                     radius: 150
                 });
                 updateHUD();
@@ -459,8 +494,6 @@
             nextWave: () => {
                 document.getElementById('shop-overlay').style.display = 'none';
                 state.inShop = false;
-                
-                // Mudar Bioma
                 currentBiome = biomes[Math.floor((state.wave - 1) / 5) % biomes.length];
 
                 if(state.wave % 5 === 0) {
@@ -481,11 +514,9 @@
                 return;
             }
 
-            // 1. Limpar e Desenhar Fundo
             ctx.fillStyle = currentBiome.bg;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Screen Shake
             if(state.shake > 0) {
                 const dx = (Math.random() - 0.5) * state.shake;
                 const dy = (Math.random() - 0.5) * state.shake;
@@ -494,11 +525,9 @@
                 if(state.shake < 0.5) state.shake = 0;
             }
 
-            // Grid do Chão
             ctx.strokeStyle = currentBiome.grid;
             ctx.lineWidth = 1;
             const gridSize = 100;
-            // Movimento parallax leve
             const offsetX = -player.x * 0.1;
             const offsetY = -player.y * 0.1;
             
@@ -511,97 +540,72 @@
             }
             ctx.stroke();
 
-            // 2. Lógica do Jogador
             if(state.keys['w'] && player.y > 0) player.y -= player.speed;
             if(state.keys['s'] && player.y < canvas.height) player.y += player.speed;
             if(state.keys['a'] && player.x > 0) player.x -= player.speed;
             if(state.keys['d'] && player.x < canvas.width) player.x += player.speed;
 
-            // Desenhar Jogador
             ctx.save();
             ctx.translate(player.x, player.y);
             ctx.rotate(Math.atan2(state.mouse.y - player.y, state.mouse.x - player.x));
-            
-            // Corpo
             ctx.shadowBlur = 15;
             ctx.shadowColor = '#00d2ff';
             ctx.fillStyle = '#00d2ff';
             ctx.fillRect(-player.size/2, -player.size/2, player.size, player.size);
-            
-            // Arma
             ctx.shadowBlur = 0;
             ctx.fillStyle = '#333';
             ctx.fillRect(5, -5, 20, 10);
             ctx.restore();
 
-            // 3. Granadas (Explosões pendentes)
             explosions.forEach((exp, i) => {
                 exp.timer--;
-                // Indicador visual da granada
                 ctx.strokeStyle = '#ff0000';
                 ctx.beginPath();
                 ctx.arc(exp.x, exp.y, exp.radius, 0, Math.PI*2);
                 ctx.setLineDash([5, 5]);
                 ctx.stroke();
                 ctx.setLineDash([]);
-                
-                // Texto de contagem
                 ctx.fillStyle = 'white';
                 ctx.font = "20px Arial";
                 ctx.fillText((exp.timer/60).toFixed(1), exp.x, exp.y);
 
                 if(exp.timer <= 0) {
-                    // BOOM
                     state.shake = 20;
                     createExplosion(exp.x, exp.y, '#ffaa00', 50);
-                    // Dano em área
                     enemies.forEach(en => {
-                        if(Math.hypot(en.x - exp.x, en.y - exp.y) < exp.radius) {
-                            en.hp -= 10;
-                        }
+                        if(Math.hypot(en.x - exp.x, en.y - exp.y) < exp.radius) en.hp -= 10;
                     });
                     explosions.splice(i, 1);
                 }
             });
 
-            // 4. Inimigos
             enemies.forEach((en, i) => {
                 const dist = Math.hypot(player.x - en.x, player.y - en.y);
                 const angle = Math.atan2(player.y - en.y, player.x - en.x);
-                
                 en.x += Math.cos(angle) * en.speed;
                 en.y += Math.sin(angle) * en.speed;
 
-                // Desenhar Inimigo
                 ctx.save();
                 ctx.translate(en.x, en.y);
-                // Rosto sempre olha pro jogador? Não, vamos manter simples: quadrado com rosto
-                
                 ctx.shadowBlur = 10;
                 ctx.shadowColor = en.color;
                 ctx.fillStyle = en.color;
                 ctx.fillRect(-en.size/2, -en.size/2, en.size, en.size);
-
-                // ROSTO (Olhos e Boca)
                 ctx.shadowBlur = 0;
                 ctx.fillStyle = 'black';
                 if(en.isBoss) {
-                    // Olhos Boss (Vermelhos e Bravos)
                     ctx.fillStyle = '#ffcc00';
-                    ctx.fillRect(-20, -20, 15, 15); // Olho E
-                    ctx.fillRect(5, -20, 15, 15);   // Olho D
+                    ctx.fillRect(-20, -20, 15, 15);
+                    ctx.fillRect(5, -20, 15, 15);
                     ctx.fillStyle = 'black';
-                    ctx.fillRect(-30, 20, 60, 10);  // Boca
+                    ctx.fillRect(-30, 20, 60, 10);
                 } else {
-                    // Olhos Normais
                     ctx.fillRect(-en.size/4, -en.size/4, 4, 4);
                     ctx.fillRect(en.size/8, -en.size/4, 4, 4);
-                    // Boca
                     ctx.fillRect(-en.size/6, en.size/6, en.size/3, 2);
                 }
                 ctx.restore();
 
-                // Colisão Jogador
                 if(dist < (player.size/2 + en.size/2)) {
                     player.hp -= en.isBoss ? 1 : 0.5;
                     state.shake = 5;
@@ -609,18 +613,15 @@
                     if(player.hp <= 0) gameOver();
                 }
 
-                // Atualizar Boss Bar
                 if(en.isBoss) {
                     const pct = (en.hp / en.maxHp) * 100;
                     document.getElementById('boss-bar-fill').style.width = pct + '%';
                 }
             });
 
-            // 5. Balas
             bullets.forEach((b, i) => {
                 b.x += b.vx;
                 b.y += b.vy;
-
                 ctx.shadowBlur = 5;
                 ctx.shadowColor = 'yellow';
                 ctx.fillStyle = '#fff';
@@ -629,26 +630,21 @@
                 ctx.fill();
                 ctx.shadowBlur = 0;
 
-                // Remover se sair da tela
                 if(b.x < 0 || b.x > canvas.width || b.y < 0 || b.y > canvas.height) {
                     bullets.splice(i, 1);
                     return;
                 }
 
-                // Colisão com Inimigos
                 enemies.forEach((en, j) => {
                     if(Math.hypot(b.x - en.x, b.y - en.y) < en.size/2 + 4) {
                         en.hp--;
-                        bullets.splice(i, 1); // Bala some
-                        createExplosion(b.x, b.y, en.color, 3); // Mini explosão
-
+                        bullets.splice(i, 1);
+                        createExplosion(b.x, b.y, en.color, 3);
                         if(en.hp <= 0) {
                             state.coins += en.isBoss ? 200 : 10;
                             state.sessionKills++;
                             enemies.splice(j, 1);
-                            createExplosion(en.x, en.y, en.color, 15); // Explosão grande
-                            
-                            // Checar fim de onda
+                            createExplosion(en.x, en.y, en.color, 15);
                             if(enemies.length === 0) {
                                 state.wave++;
                                 state.inShop = true;
@@ -660,26 +656,21 @@
                 });
             });
 
-            // 6. Partículas
             particles.forEach((p, i) => {
                 p.x += p.vx;
                 p.y += p.vy;
                 p.life -= 0.05;
                 p.size *= 0.95;
-
                 ctx.globalAlpha = p.life;
                 ctx.fillStyle = p.color;
                 ctx.beginPath();
                 ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
                 ctx.fill();
                 ctx.globalAlpha = 1.0;
-
                 if(p.life <= 0) particles.splice(i, 1);
             });
 
-            // Reset Transform (apenas segurança)
             ctx.setTransform(1, 0, 0, 1, 0, 0);
-
             requestAnimationFrame(gameLoop);
         }
 
@@ -691,7 +682,6 @@
             document.getElementById('ui-wave').innerText = state.wave;
             document.getElementById('ui-grenades').innerText = state.grenades;
 
-            // Patente
             const k = state.user.kills + state.sessionKills;
             let rank = "RECRUTA";
             let color = "#fff";
@@ -708,30 +698,21 @@
         async function gameOver() {
             state.active = false;
             const total = state.user.kills + state.sessionKills;
-            // Salvar no Firebase
             try {
-                await set(ref(db, 'players/' + state.user.name), {
-                    totalKills: total
-                });
+                await set(ref(db, 'players/' + state.user.name), { totalKills: total });
             } catch(e) { console.error("Erro Save:", e); }
-            
-            alert(`FIM DE JOGO! VOCÊ SOBREVIVEU ATÉ A ONDA ${state.wave}.\nKills nesta sessão: ${state.sessionKills}`);
+            alert(`FIM DE JOGO! ONDA ${state.wave}.\nKills: ${state.sessionKills}`);
             location.reload();
         }
 
-        /* --- INPUTS --- */
         window.addEventListener('keydown', e => {
             state.keys[e.key.toLowerCase()] = true;
-            
-            // Recarregar (R)
             if(e.key.toLowerCase() === 'r' && !player.reloading && player.ammo < player.maxAmmo) {
                 player.reloading = true;
                 const bar = document.getElementById('reload-ui');
                 const fill = document.getElementById('reload-fill');
                 bar.style.display = 'block';
                 fill.style.width = '0%';
-                
-                // Animação CSS manual ou JS
                 let p = 0;
                 const int = setInterval(() => {
                     p += 5;
@@ -743,13 +724,9 @@
                         bar.style.display = 'none';
                         updateHUD();
                     }
-                }, 50); // 1 segundo total (20 * 50ms)
+                }, 50);
             }
-
-            // Granada (G)
-            if(e.key.toLowerCase() === 'g') {
-                throwGrenade();
-            }
+            if(e.key.toLowerCase() === 'g') throwGrenade();
         });
 
         window.addEventListener('keyup', e => state.keys[e.key.toLowerCase()] = false);
@@ -759,53 +736,30 @@
         });
         window.addEventListener('mousedown', () => {
             if(!state.active || state.inShop || player.reloading || player.ammo <= 0) return;
-
             const angle = Math.atan2(state.mouse.y - player.y, state.mouse.x - player.x);
-            
             const shoot = (ang) => {
-                bullets.push({
-                    x: player.x, y: player.y,
-                    vx: Math.cos(ang) * 15,
-                    vy: Math.sin(ang) * 15
-                });
+                bullets.push({ x: player.x, y: player.y, vx: Math.cos(ang) * 15, vy: Math.sin(ang) * 15 });
             };
-
             shoot(angle);
-            if(player.upgrades.triple) {
-                shoot(angle + 0.2);
-                shoot(angle - 0.2);
-            }
-
+            if(player.upgrades.triple) { shoot(angle + 0.2); shoot(angle - 0.2); }
             player.ammo--;
             state.shake = 3;
             updateHUD();
-
-            if(player.ammo <= 0) {
-                // Auto reload simples se zerar (opcional, mas o 'R' é melhor)
-            }
         });
 
-        /* --- INICIALIZAÇÃO --- */
         document.getElementById('btn-start').addEventListener('click', async () => {
             const nick = document.getElementById('nick-input').value.trim().toUpperCase();
             if(nick.length < 3) { alert("Nick muito curto!"); return; }
-
-            // Carregar dados
             const snap = await get(child(ref(db), 'players/' + nick));
             state.user.name = nick;
             state.user.kills = snap.exists() ? snap.val().totalKills : 0;
-
             document.getElementById('login-overlay').style.display = 'none';
             state.active = true;
-            
-            // Iniciar primeira onda
             window.game.nextWave(); 
             gameLoop();
         });
 
-        // Carregar ranking ao abrir
         fetchRanking();
-
     </script>
 </body>
 </html>
