@@ -1,766 +1,153 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Block Royale - Definitive Edition</title>
-    <style>
-        /* --- ESTILO GERAL E RESET --- */
-        body { 
-            background: #050505; 
-            margin: 0; 
-            overflow: hidden; 
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; 
-            color: white; 
-            user-select: none; 
-        }
-        canvas { 
-            display: block; 
-            cursor: crosshair; 
-        }
-
-        /* --- INTERFACE DO JOGADOR (HUD) --- */
-        #ui-layer { 
-            position: absolute; 
-            top: 20px; 
-            left: 20px; 
-            pointer-events: none; 
-            display: flex; 
-            flex-direction: column; 
-            gap: 12px; 
-            z-index: 10; 
-        }
-
-        .stat-box { 
-            background: rgba(10, 10, 15, 0.85); 
-            padding: 12px 20px; 
-            border-radius: 8px; 
-            border-left: 5px solid #00d2ff; 
-            font-weight: 800; 
-            font-size: 14px; 
-            text-transform: uppercase; 
-            letter-spacing: 1px; 
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(8px);
-            min-width: 220px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .stat-box span { 
-            font-size: 18px; 
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
-        }
-
-        /* Variações de Cores da HUD */
-        .hud-blue span { color: #00d2ff; }
-        .hud-gold { border-left-color: #ffd700; }
-        .hud-gold span { color: #ffd700; }
-        .hud-danger { border-left-color: #ff3333; }
-        .hud-danger span { color: #ff3333; }
-        .hud-purple { border-left-color: #aa00ff; }
-        .hud-purple span { color: #aa00ff; }
-
-        /* --- UI DO CHEFÃO --- */
-        #boss-container {
-            position: absolute;
-            top: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 60%;
-            max-width: 600px;
-            display: none;
-            z-index: 15;
-            text-align: center;
-        }
-        #boss-label {
-            color: #ff0055;
-            font-weight: 900;
-            font-size: 24px;
-            margin-bottom: 8px;
-            text-shadow: 0 0 15px #ff0055;
-            letter-spacing: 2px;
-        }
-        #boss-bar-frame {
-            width: 100%;
-            height: 24px;
-            background: rgba(0,0,0,0.8);
-            border: 2px solid #ff0055;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 0 20px rgba(255, 0, 85, 0.4);
-        }
-        #boss-bar-fill {
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, #ff0055, #ff6666);
-            transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        /* --- UI DE RECARGA --- */
-        #reload-ui {
-            position: absolute;
-            top: 60%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 200px;
-            height: 10px;
-            background: rgba(0,0,0,0.8);
-            border-radius: 5px;
-            border: 1px solid #fff;
-            display: none;
-            overflow: hidden;
-        }
-        #reload-fill {
-            width: 0%;
-            height: 100%;
-            background: #fff;
-        }
-
-        /* --- LOJA --- */
-        #shop-overlay {
-            position: absolute;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(18, 18, 24, 0.98);
-            padding: 40px;
-            border-radius: 20px;
-            border: 2px solid #ffd700;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            box-shadow: 0 0 80px rgba(255, 215, 0, 0.15);
-            z-index: 50;
-            width: 500px;
-        }
-        .shop-title {
-            font-size: 32px;
-            color: #ffd700;
-            margin-bottom: 20px;
-            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
-        }
-        .shop-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            width: 100%;
-        }
-        .shop-item {
-            background: #2a2a35;
-            padding: 20px;
-            border-radius: 10px;
-            cursor: pointer;
-            border: 1px solid #444;
-            transition: all 0.2s;
-            text-align: center;
-        }
-        .shop-item:hover {
-            transform: translateY(-3px);
-            border-color: #ffd700;
-            background: #3a3a45;
-        }
-        .shop-item h3 { margin: 0 0 5px 0; color: #fff; font-size: 16px; }
-        .shop-item p { margin: 0; color: #ffd700; font-weight: bold; font-size: 14px; }
-
-        /* --- ESTILO DO APOIO VIA PIX (Linha 166) --- */
-        .shop-support {
-            grid-column: span 2;
-            margin-top: 20px;
-            padding: 15px;
-            background: rgba(50, 188, 173, 0.1);
-            border: 1px solid #32bcad;
-            border-radius: 12px;
-            text-align: center;
-            width: 100%;
-            box-sizing: border-box;
-        }
-        .btn-pix {
-            background: #32bcad;
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 8px;
-            font-weight: 900;
-            cursor: pointer;
-            transition: 0.3s;
-            text-decoration: none;
-            display: inline-block;
-            width: 85%;
-            font-family: 'Segoe UI', sans-serif;
-            text-transform: uppercase;
-        }
-        .btn-pix:hover {
-            background: #289c8f;
-            transform: scale(1.02);
-            box-shadow: 0 0 15px rgba(50, 188, 173, 0.4);
-        }
-
-        /* --- TELA DE LOGIN --- */
-        #login-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: #050505;
-            display: flex; justify-content: center; align-items: center;
-            z-index: 100;
-        }
-        .login-card {
-            background: #111;
-            padding: 60px;
-            border-radius: 20px;
-            border: 1px solid #333;
-            text-align: center;
-            width: 400px;
-            box-shadow: 0 0 60px rgba(0, 210, 255, 0.1);
-        }
-        .login-card h1 {
-            color: #00d2ff;
-            font-size: 40px;
-            margin-bottom: 30px;
-            letter-spacing: 2px;
-        }
-        .login-input {
-            width: 100%;
-            padding: 15px;
-            background: #000;
-            border: 1px solid #333;
-            color: white;
-            border-radius: 8px;
-            font-size: 18px;
-            text-align: center;
-            margin-bottom: 20px;
-            box-sizing: border-box;
-        }
-        .btn-main {
-            width: 100%;
-            padding: 15px;
-            background: #00d2ff;
-            color: black;
-            font-weight: 900;
-            font-size: 20px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        .btn-main:hover {
-            background: white;
-            box-shadow: 0 0 20px #00d2ff;
-        }
-        #ranking-list {
-            margin-top: 30px;
-            text-align: left;
-            font-size: 14px;
-            color: #888;
-            background: #0a0a0a;
-            padding: 15px;
-            border-radius: 8px;
-        }
-
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AdPremium | Ganhe Assistindo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <div id="ui-layer">
-        <div class="stat-box">JOGADOR <span class="hud-blue" id="ui-name">---</span></div>
-        <div class="stat-box">PATENTE <span class="hud-purple" id="ui-rank">RECRUTA</span></div>
-        <div class="stat-box hud-gold">MOEDAS <span id="ui-coins">0</span></div>
-        <div class="stat-box hud-danger">VIDA <span id="ui-hp">100%</span></div>
-        <div class="stat-box">MUNIÇÃO <span class="hud-blue" id="ui-ammo">20/20</span></div>
-        <div class="stat-box">GRANADAS (G) <span class="hud-purple" id="ui-grenades">3</span></div>
-        <div class="stat-box" style="border-left-color: #fff;">ONDA <span style="color:#fff" id="ui-wave">1</span></div>
+    <div class="app-container">
+        <aside class="sidebar-pc">
+            <div class="logo">
+                <h2>Ad<span>Premium</span></h2>
+            </div>
+            <nav>
+                <button id="btn-pc-dashboard" onclick="navegar('dashboard')" class="active"><i class="fas fa-home"></i> Início</button>
+                <button id="btn-pc-ganhar" onclick="navegar('ganhar')"><i class="fas fa-play-circle"></i> Ganhar</button>
+                <button id="btn-pc-saque" onclick="navegar('saque')"><i class="fas fa-wallet"></i> Carteira</button>
+                <button onclick="abrirVip()" class="btn-vip-menu"><i class="fas fa-crown"></i> SEJA VIP</button>
+            </nav>
+        </aside>
+
+        <main class="content-area">
+            <header>
+                <div class="user-hello">
+                    <p>Bem-vindo,</p>
+                    <h3>Investidor</h3>
+                </div>
+                <div class="user-balance">
+                    <small>Saldo Atual</small>
+                    <h2 id="saldo-header">R$ 0,00</h2>
+                </div>
+            </header>
+
+            <section id="dashboard" class="screen active">
+                <div class="stats-container">
+                    <div class="stat-card">
+                        <i class="fas fa-chart-line"></i>
+                        <p>Total Acumulado</p>
+                        <h3 id="total-acumulado">R$ 0,00</h3>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fas fa-video"></i>
+                        <p>Vídeos Vistos</p>
+                        <h3 id="total-videos">0</h3>
+                    </div>
+                </div>
+
+                <div class="banner-vip" onclick="abrirVip()">
+                    <div class="text">
+                        <h3>Desbloqueie seu Saque</h3>
+                        <p>Status: <span id="status-dashboard">Grátis</span></p>
+                    </div>
+                    <i class="fas fa-crown"></i>
+                </div>
+
+                <h3 class="section-title">Atividades Recentes</h3>
+                <ul class="activity-list" id="lista-atividades-dash"></ul>
+            </section>
+
+            <section id="ganhar" class="screen">
+                <div class="video-wrapper">
+                    <div class="video-player">
+                        <div class="play-overlay" id="play-overlay">
+                            <i class="fas fa-play"></i>
+                        </div>
+                        <p id="msg-video">Campanha Publicitária Ativa</p>
+                        <div class="progress-container">
+                            <div class="progress-fill" id="barra-progresso"></div>
+                        </div>
+                    </div>
+                    <button class="btn-primary" id="btn-assistir" onclick="iniciarAnuncio()">
+                        Assistir Anúncio (+ R$ 0,10)
+                    </button>
+                </div>
+                <div class="info-box">
+                    <i class="fas fa-shield-alt"></i>
+                    <p>Anúncio verificado e seguro.</p>
+                </div>
+            </section>
+
+            <section id="saque" class="screen">
+                <div class="wallet-card">
+                    <p>Disponível para Saque</p>
+                    <h1 id="saldo-saque">R$ 0,00</h1>
+                    <div class="status-badge" id="badge-status">CONTA GRÁTIS</div>
+                </div>
+
+                <div class="form-pix">
+                    <label>Chave PIX (CPF, Email ou Telefone)</label>
+                    <input type="text" id="input-pix" placeholder="Insira sua chave aqui">
+                    <button class="btn-success" onclick="solicitarSaque()">SOLICITAR SAQUE</button>
+                </div>
+                
+                <div class="history-section">
+                    <h4>Histórico Financeiro</h4>
+                    <ul class="activity-list" id="lista-historico"></ul>
+                </div>
+            </section>
+        </main>
+
+        <nav class="mobile-nav">
+            <button id="btn-mob-dashboard" onclick="navegar('dashboard')" class="nav-item active">
+                <i class="fas fa-home"></i>
+                <span>Início</span>
+            </button>
+            <button id="btn-mob-ganhar" onclick="navegar('ganhar')" class="nav-item">
+                <i class="fas fa-play-circle"></i>
+                <span>Ganhar</span>
+            </button>
+            <button id="btn-mob-saque" onclick="navegar('saque')" class="nav-item">
+                <i class="fas fa-wallet"></i>
+                <span>Saque</span>
+            </button>
+            <button onclick="abrirVip()" class="nav-item vip">
+                <i class="fas fa-crown"></i>
+                <span>VIP</span>
+            </button>
+        </nav>
     </div>
 
-    <div id="boss-container">
-        <div id="boss-label">⚠️ AMEAÇA DETECTADA ⚠️</div>
-        <div id="boss-bar-frame"><div id="boss-bar-fill"></div></div>
-    </div>
-
-    <div id="reload-ui"><div id="reload-fill"></div></div>
-
-    <div id="shop-overlay">
-        <div class="shop-title">MERCADO NEGRO</div>
-        <div class="shop-grid">
-            <div class="shop-item" onclick="window.game.buy('triple')">
-                <h3>TIRO TRIPLO</h3>
-                <p>50 MOEDAS</p>
-            </div>
-            <div class="shop-item" onclick="window.game.buy('heal')">
-                <h3>CURA TOTAL</h3>
-                <p>30 MOEDAS</p>
-            </div>
-            <div class="shop-item" onclick="window.game.buy('speed')">
-                <h3>VELOCIDADE</h3>
-                <p>40 MOEDAS</p>
-            </div>
-            <div class="shop-item" onclick="window.game.buy('grenade')">
-                <h3>+1 GRANADA</h3>
-                <p>60 MOEDAS</p>
-            </div>
-        </div>
-
-        <div class="shop-support">
-            <p style="color: #32bcad; font-size: 13px; margin-bottom: 12px; font-weight: bold;">🚀 AJUDE A MELHORAR O JOGO</p>
-            <a href="https://livepix.gg/sandrovelarifps" target="_blank" class="btn-pix">
-                APOIAR VIA PIX
-            </a>
-        </div>
-
-        <button class="btn-main" style="margin-top:20px; background:#ffd700;" onclick="window.game.nextWave()">PRÓXIMA ONDA</button>
-    </div>
-
-    <div id="login-overlay">
-        <div class="login-card">
-            <h1>BLOCK ROYALE</h1>
-            <input type="text" id="nick-input" class="login-input" placeholder="DIGITE SEU NICK" maxlength="12">
-            <button id="btn-start" class="btn-main">ENTRAR NA ARENA</button>
-            <div id="ranking-list">Carregando Top Players...</div>
-        </div>
-    </div>
-
-    <canvas id="gameCanvas"></canvas>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, get, child } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-
-        /* --- CONFIGURAÇÃO FIREBASE --- */
-        const firebaseConfig = {
-            apiKey: "AIzaSyD4SyFFNHI1k2Nn0LwlGwXBpK5LG9q6rXg",
-            authDomain: "vit4lynv-1fb7c.firebaseapp.com",
-            projectId: "vit4lynv-1fb7c",
-            storageBucket: "vit4lynv-1fb7c.firebasestorage.app",
-            messagingSenderId: "418954009350",
-            appId: "1:418954009350:web:9bf8fadb44f81cf8815c87"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-
-        /* --- MOTOR DO JOGO --- */
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        
-        function resize() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        }
-        window.addEventListener('resize', resize);
-        resize();
-
-        const state = {
-            active: false,
-            inShop: false,
-            user: { name: "Player", kills: 0 },
-            sessionKills: 0,
-            coins: 0,
-            wave: 1,
-            shake: 0,
-            grenades: 3,
-            keys: {},
-            mouse: { x: 0, y: 0 }
-        };
-
-        const biomes = [
-            { name: "NEON CITY", bg: "#0a0a0f", floor: "#151520", grid: "#222" },
-            { name: "MARTE", bg: "#1a0505", floor: "#2a0a0a", grid: "#441111" },
-            { name: "GELO", bg: "#051a1a", floor: "#0a2a2a", grid: "#114444" },
-            { name: "VAZIO", bg: "#111", floor: "#222", grid: "#333" }
-        ];
-        let currentBiome = biomes[0];
-
-        const player = {
-            x: canvas.width / 2,
-            y: canvas.height / 2,
-            size: 30,
-            speed: 4,
-            maxHp: 100,
-            hp: 100,
-            ammo: 20,
-            maxAmmo: 20,
-            reloading: false,
-            upgrades: { triple: false }
-        };
-
-        let enemies = [];
-        let bullets = [];
-        let particles = [];
-        let explosions = [];
-
-        /* --- SISTEMA DE RANKING --- */
-        async function fetchRanking() {
-            try {
-                const snap = await get(child(ref(db), 'players'));
-                if (snap.exists()) {
-                    const data = snap.val();
-                    const sorted = Object.entries(data)
-                        .map(([name, stats]) => ({ name, kills: stats.totalKills || 0 }))
-                        .sort((a, b) => b.kills - a.kills)
-                        .slice(0, 5);
-                    
-                    const html = sorted.map((p, i) => 
-                        `<div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                            <span>#${i+1} ${p.name}</span> <span style="color:#00d2ff">${p.kills}</span>
-                        </div>`
-                    ).join('');
-                    document.getElementById('ranking-list').innerHTML = `<b>🏆 TOP 5 GLOBAL</b><br><br>${html}`;
-                }
-            } catch (e) { console.error("Erro Rank:", e); }
-        }
-
-        /* --- FUNÇÕES DE JOGO --- */
-        function spawnEnemy() {
-            const side = Math.floor(Math.random() * 4);
-            let x, y;
-            if(side === 0) { x = Math.random() * canvas.width; y = -50; }
-            else if(side === 1) { x = canvas.width + 50; y = Math.random() * canvas.height; }
-            else if(side === 2) { x = Math.random() * canvas.width; y = canvas.height + 50; }
-            else { x = -50; y = Math.random() * canvas.height; }
-
-            const isFast = Math.random() < 0.2;
-            const isTank = Math.random() < 0.05 && state.wave > 3;
-
-            let enemy = {
-                x, y,
-                size: isTank ? 50 : (isFast ? 25 : 35),
-                hp: isTank ? 6 + state.wave : (isFast ? 1 : 2 + Math.floor(state.wave/3)),
-                maxHp: isTank ? 6 + state.wave : (isFast ? 1 : 2 + Math.floor(state.wave/3)),
-                speed: isTank ? 1.5 : (isFast ? 4 + (state.wave * 0.1) : 2 + (state.wave * 0.1)),
-                color: isTank ? '#aa00ff' : (isFast ? '#ffd700' : '#ff3333'),
-                type: isTank ? 'tank' : (isFast ? 'fast' : 'normal'),
-                isBoss: false
-            };
-            enemies.push(enemy);
-        }
-
-        function spawnBoss() {
-            document.getElementById('boss-container').style.display = 'block';
-            enemies.push({
-                x: canvas.width/2, y: -150,
-                size: 140,
-                hp: 50 + (state.wave * 15),
-                maxHp: 50 + (state.wave * 15),
-                speed: 1.8,
-                color: '#ff0055',
-                type: 'boss',
-                isBoss: true
-            });
-        }
-
-        function createExplosion(x, y, color, count = 10) {
-            for(let i=0; i<count; i++) {
-                particles.push({
-                    x, y,
-                    vx: (Math.random() - 0.5) * 10,
-                    vy: (Math.random() - 0.5) * 10,
-                    life: 1.0,
-                    color: color,
-                    size: Math.random() * 4 + 2
-                });
-            }
-        }
-
-        function throwGrenade() {
-            if(state.grenades > 0) {
-                state.grenades--;
-                const targetX = state.mouse.x;
-                const targetY = state.mouse.y;
-                explosions.push({
-                    x: targetX, y: targetY,
-                    timer: 60,
-                    radius: 150
-                });
-                updateHUD();
-            }
-        }
-
-        /* --- LOJA E CONTROLE --- */
-        window.game = {
-            buy: (item) => {
-                if(item === 'triple' && state.coins >= 50 && !player.upgrades.triple) {
-                    state.coins -= 50; player.upgrades.triple = true;
-                }
-                if(item === 'heal' && state.coins >= 30) {
-                    state.coins -= 30; player.hp = player.maxHp;
-                }
-                if(item === 'speed' && state.coins >= 40) {
-                    state.coins -= 40; player.speed += 1;
-                }
-                if(item === 'grenade' && state.coins >= 60) {
-                    state.coins -= 60; state.grenades += 1;
-                }
-                updateHUD();
-            },
-            nextWave: () => {
-                document.getElementById('shop-overlay').style.display = 'none';
-                state.inShop = false;
-                currentBiome = biomes[Math.floor((state.wave - 1) / 5) % biomes.length];
-
-                if(state.wave % 5 === 0) {
-                    spawnBoss();
-                } else {
-                    document.getElementById('boss-container').style.display = 'none';
-                    const count = 4 + Math.floor(state.wave * 1.5);
-                    for(let i=0; i<count; i++) spawnEnemy();
-                }
-                updateHUD();
-            }
-        };
-
-        /* --- LOOP PRINCIPAL --- */
-        function gameLoop() {
-            if(!state.active || state.inShop) {
-                requestAnimationFrame(gameLoop);
-                return;
-            }
-
-            ctx.fillStyle = currentBiome.bg;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            if(state.shake > 0) {
-                const dx = (Math.random() - 0.5) * state.shake;
-                const dy = (Math.random() - 0.5) * state.shake;
-                ctx.translate(dx, dy);
-                state.shake *= 0.9;
-                if(state.shake < 0.5) state.shake = 0;
-            }
-
-            ctx.strokeStyle = currentBiome.grid;
-            ctx.lineWidth = 1;
-            const gridSize = 100;
-            const offsetX = -player.x * 0.1;
-            const offsetY = -player.y * 0.1;
+    <div id="modal-vip" class="modal-overlay">
+        <div class="modal-box">
+            <button class="close-btn" onclick="fecharVip()">&times;</button>
+            <div class="vip-header-icon"><i class="fas fa-crown"></i></div>
+            <h2>Liberação de Saque</h2>
+            <p>Ative sua conta VIP para desbloquear o sistema de saques e remover anúncios obrigatórios.</p>
             
-            ctx.beginPath();
-            for(let x=offsetX % gridSize; x<canvas.width; x+=gridSize) {
-                ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height);
-            }
-            for(let y=offsetY % gridSize; y<canvas.height; y+=gridSize) {
-                ctx.moveTo(0, y); ctx.lineTo(canvas.width, y);
-            }
-            ctx.stroke();
+            <ul class="vip-benefits">
+                <li><i class="fas fa-check"></i> Saques via PIX em até 2h</li>
+                <li><i class="fas fa-check"></i> Sem limite de vídeos</li>
+                <li><i class="fas fa-check"></i> Bônus de R$ 5,00 imediato</li>
+            </ul>
 
-            if(state.keys['w'] && player.y > 0) player.y -= player.speed;
-            if(state.keys['s'] && player.y < canvas.height) player.y += player.speed;
-            if(state.keys['a'] && player.x > 0) player.x -= player.speed;
-            if(state.keys['d'] && player.x < canvas.width) player.x += player.speed;
+            <div class="price-display">
+                <h3>R$ 19,99 <small>Taxa Única</small></h3>
+            </div>
 
-            ctx.save();
-            ctx.translate(player.x, player.y);
-            ctx.rotate(Math.atan2(state.mouse.y - player.y, state.mouse.x - player.x));
-            ctx.shadowBlur = 15;
-            ctx.shadowColor = '#00d2ff';
-            ctx.fillStyle = '#00d2ff';
-            ctx.fillRect(-player.size/2, -player.size/2, player.size, player.size);
-            ctx.shadowBlur = 0;
-            ctx.fillStyle = '#333';
-            ctx.fillRect(5, -5, 20, 10);
-            ctx.restore();
+            <div class="mp-checkout-container">
+                <script src="https://www.mercadopago.com.br/integrations/v1/web-payment-checkout.js"
+                data-preference-id="2072305268-31335694-b34f-414c-aad8-68c76aa9327e" data-source="button">
+                </script>
+            </div>
 
-            explosions.forEach((exp, i) => {
-                exp.timer--;
-                ctx.strokeStyle = '#ff0000';
-                ctx.beginPath();
-                ctx.arc(exp.x, exp.y, exp.radius, 0, Math.PI*2);
-                ctx.setLineDash([5, 5]);
-                ctx.stroke();
-                ctx.setLineDash([]);
-                ctx.fillStyle = 'white';
-                ctx.font = "20px Arial";
-                ctx.fillText((exp.timer/60).toFixed(1), exp.x, exp.y);
+            <p class="secure-text"><i class="fas fa-lock"></i> Pagamento processado pelo Mercado Pago</p>
+        </div>
+    </div>
 
-                if(exp.timer <= 0) {
-                    state.shake = 20;
-                    createExplosion(exp.x, exp.y, '#ffaa00', 50);
-                    enemies.forEach(en => {
-                        if(Math.hypot(en.x - exp.x, en.y - exp.y) < exp.radius) en.hp -= 10;
-                    });
-                    explosions.splice(i, 1);
-                }
-            });
-
-            enemies.forEach((en, i) => {
-                const dist = Math.hypot(player.x - en.x, player.y - en.y);
-                const angle = Math.atan2(player.y - en.y, player.x - en.x);
-                en.x += Math.cos(angle) * en.speed;
-                en.y += Math.sin(angle) * en.speed;
-
-                ctx.save();
-                ctx.translate(en.x, en.y);
-                ctx.shadowBlur = 10;
-                ctx.shadowColor = en.color;
-                ctx.fillStyle = en.color;
-                ctx.fillRect(-en.size/2, -en.size/2, en.size, en.size);
-                ctx.shadowBlur = 0;
-                ctx.fillStyle = 'black';
-                if(en.isBoss) {
-                    ctx.fillStyle = '#ffcc00';
-                    ctx.fillRect(-20, -20, 15, 15);
-                    ctx.fillRect(5, -20, 15, 15);
-                    ctx.fillStyle = 'black';
-                    ctx.fillRect(-30, 20, 60, 10);
-                } else {
-                    ctx.fillRect(-en.size/4, -en.size/4, 4, 4);
-                    ctx.fillRect(en.size/8, -en.size/4, 4, 4);
-                    ctx.fillRect(-en.size/6, en.size/6, en.size/3, 2);
-                }
-                ctx.restore();
-
-                if(dist < (player.size/2 + en.size/2)) {
-                    player.hp -= en.isBoss ? 1 : 0.5;
-                    state.shake = 5;
-                    updateHUD();
-                    if(player.hp <= 0) gameOver();
-                }
-
-                if(en.isBoss) {
-                    const pct = (en.hp / en.maxHp) * 100;
-                    document.getElementById('boss-bar-fill').style.width = pct + '%';
-                }
-            });
-
-            bullets.forEach((b, i) => {
-                b.x += b.vx;
-                b.y += b.vy;
-                ctx.shadowBlur = 5;
-                ctx.shadowColor = 'yellow';
-                ctx.fillStyle = '#fff';
-                ctx.beginPath();
-                ctx.arc(b.x, b.y, 4, 0, Math.PI*2);
-                ctx.fill();
-                ctx.shadowBlur = 0;
-
-                if(b.x < 0 || b.x > canvas.width || b.y < 0 || b.y > canvas.height) {
-                    bullets.splice(i, 1);
-                    return;
-                }
-
-                enemies.forEach((en, j) => {
-                    if(Math.hypot(b.x - en.x, b.y - en.y) < en.size/2 + 4) {
-                        en.hp--;
-                        bullets.splice(i, 1);
-                        createExplosion(b.x, b.y, en.color, 3);
-                        if(en.hp <= 0) {
-                            state.coins += en.isBoss ? 200 : 10;
-                            state.sessionKills++;
-                            enemies.splice(j, 1);
-                            createExplosion(en.x, en.y, en.color, 15);
-                            if(enemies.length === 0) {
-                                state.wave++;
-                                state.inShop = true;
-                                document.getElementById('shop-overlay').style.display = 'flex';
-                            }
-                        }
-                        updateHUD();
-                    }
-                });
-            });
-
-            particles.forEach((p, i) => {
-                p.x += p.vx;
-                p.y += p.vy;
-                p.life -= 0.05;
-                p.size *= 0.95;
-                ctx.globalAlpha = p.life;
-                ctx.fillStyle = p.color;
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
-                ctx.fill();
-                ctx.globalAlpha = 1.0;
-                if(p.life <= 0) particles.splice(i, 1);
-            });
-
-            ctx.setTransform(1, 0, 0, 1, 0, 0);
-            requestAnimationFrame(gameLoop);
-        }
-
-        function updateHUD() {
-            document.getElementById('ui-name').innerText = state.user.name;
-            document.getElementById('ui-coins').innerText = state.coins;
-            document.getElementById('ui-hp').innerText = Math.ceil(player.hp) + "%";
-            document.getElementById('ui-ammo').innerText = player.ammo + "/" + player.maxAmmo;
-            document.getElementById('ui-wave').innerText = state.wave;
-            document.getElementById('ui-grenades').innerText = state.grenades;
-
-            const k = state.user.kills + state.sessionKills;
-            let rank = "RECRUTA";
-            let color = "#fff";
-            if(k > 50) { rank = "SOLDADO"; color = "#00ff00"; }
-            if(k > 100) { rank = "VETERANO"; color = "#00d2ff"; }
-            if(k > 500) { rank = "ELITE"; color = "#aa00ff"; }
-            if(k > 1000) { rank = "LENDA"; color = "#ffd700"; }
-            
-            const rEl = document.getElementById('ui-rank');
-            rEl.innerText = rank;
-            rEl.style.color = color;
-        }
-
-        async function gameOver() {
-            state.active = false;
-            const total = state.user.kills + state.sessionKills;
-            try {
-                await set(ref(db, 'players/' + state.user.name), { totalKills: total });
-            } catch(e) { console.error("Erro Save:", e); }
-            alert(`FIM DE JOGO! ONDA ${state.wave}.\nKills: ${state.sessionKills}`);
-            location.reload();
-        }
-
-        window.addEventListener('keydown', e => {
-            state.keys[e.key.toLowerCase()] = true;
-            if(e.key.toLowerCase() === 'r' && !player.reloading && player.ammo < player.maxAmmo) {
-                player.reloading = true;
-                const bar = document.getElementById('reload-ui');
-                const fill = document.getElementById('reload-fill');
-                bar.style.display = 'block';
-                fill.style.width = '0%';
-                let p = 0;
-                const int = setInterval(() => {
-                    p += 5;
-                    fill.style.width = p + '%';
-                    if(p >= 100) {
-                        clearInterval(int);
-                        player.ammo = player.maxAmmo;
-                        player.reloading = false;
-                        bar.style.display = 'none';
-                        updateHUD();
-                    }
-                }, 50);
-            }
-            if(e.key.toLowerCase() === 'g') throwGrenade();
-        });
-
-        window.addEventListener('keyup', e => state.keys[e.key.toLowerCase()] = false);
-        window.addEventListener('mousemove', e => {
-            state.mouse.x = e.clientX;
-            state.mouse.y = e.clientY;
-        });
-        window.addEventListener('mousedown', () => {
-            if(!state.active || state.inShop || player.reloading || player.ammo <= 0) return;
-            const angle = Math.atan2(state.mouse.y - player.y, state.mouse.x - player.x);
-            const shoot = (ang) => {
-                bullets.push({ x: player.x, y: player.y, vx: Math.cos(ang) * 15, vy: Math.sin(ang) * 15 });
-            };
-            shoot(angle);
-            if(player.upgrades.triple) { shoot(angle + 0.2); shoot(angle - 0.2); }
-            player.ammo--;
-            state.shake = 3;
-            updateHUD();
-        });
-
-        document.getElementById('btn-start').addEventListener('click', async () => {
-            const nick = document.getElementById('nick-input').value.trim().toUpperCase();
-            if(nick.length < 3) { alert("Nick muito curto!"); return; }
-            const snap = await get(child(ref(db), 'players/' + nick));
-            state.user.name = nick;
-            state.user.kills = snap.exists() ? snap.val().totalKills : 0;
-            document.getElementById('login-overlay').style.display = 'none';
-            state.active = true;
-            window.game.nextWave(); 
-            gameLoop();
-        });
-
-        fetchRanking();
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
-
